@@ -58,7 +58,7 @@ in `Settings -> Upload -> Upload presets`.
 
 ## License
 
-The Laravel Exchange Rate is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+The Laravel Cloudinary is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
 
 [ico-laravel]: https://img.shields.io/badge/Laravel-6.x-red.svg?style=flat-square
 [ico-packagist]: https://img.shields.io/packagist/v/yoelpc4/laravel-cloudinary.svg?style=flat-square
