@@ -2,22 +2,28 @@ language: php
 
 os: linux
 
-php:
-  - 7.2
-  - 7.3
-  - 7.4
-
-env:
-  global:
-    - setup=basic
+matrix:
+  include:
+    - php: "7.2"
+      env:
+        - LARAVEL_VERSION=6.*
+        - PHPUNIT_VERSION=8.*
+    - php: "7.3"
+      env:
+        - LARAVEL_VERSION=6.*
+        - PHPUNIT_VERSION=8.*
+    - php: "7.4"
+      env:
+        - LARAVEL_VERSION=6.*
+        - PHPUNIT_VERSION=8.*
 
 install:
-  - if [[ $setup = 'basic' ]]; then travis_retry composer install --no-interaction --prefer-source; fi
-  - if [[ $setup = 'stable' ]]; then travis_retry composer update --prefer-source --no-interaction --prefer-stable; fi
-  - if [[ $setup = 'lowest' ]]; then travis_retry composer update --prefer-source --no-interaction --prefer-lowest --prefer-stable; fi
+  - composer require "laravel/framework:${LARAVEL_VERSION}" --no-update -n
+  - composer require "phpunit/phpunit:${PHPUNIT_VERSION}" --dev --no-update -n
+  - travis_retry composer install --no-suggest --prefer-dist -n -o
+  - composer validate
 
 script:
-  - composer validate
   - vendor/bin/phpunit
   - php coverage-checker.php coverage.xml 70
   - curl --data-binary @codecov.yml https://codecov.io/validate
