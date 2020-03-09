@@ -126,7 +126,7 @@ class StorageTest extends TestCase
      */
     public function testRename()
     {
-        $this->assertTrue(\Storage::cloud()->rename($this->upload(), 'test/'.Str::random().'.png'));
+        $this->assertTrue(\Storage::cloud()->rename($this->upload(), Str::random().'.png'));
     }
 
     /**
@@ -136,7 +136,7 @@ class StorageTest extends TestCase
      */
     public function testCopy()
     {
-        $this->assertTrue(\Storage::cloud()->copy($this->upload(), 'test/'.Str::random().'.png'));
+        $this->assertTrue(\Storage::cloud()->copy($this->upload(), Str::random().'.png'));
     }
 
     /**
