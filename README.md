@@ -52,8 +52,8 @@ Register cloudinary driver configuration in config/filesystems.php at disks sect
 To use pre-defined filename as public ID when uploading to cloudinary, you need to tweak some configuration 
 in `Settings -> Upload -> Upload presets`. 
 - Click edit button on signed mode preset, initial preset is `ml_default` you can updates it.
-- Turn on `Use filename or externally defined public ID` to use the pre-defined filename instead of random characters.
-- Turn off `Unique filename` to prevent cloudinary from add random characters at the end of filename.
+- Turn on `Use filename or externally defined public ID` to using the pre-defined filename instead of random characters.
+- Turn off `Unique filename` to prevent cloudinary from adding random characters at the end of filename.
 - Click `Save` and you're good to go.
 
 ## License
