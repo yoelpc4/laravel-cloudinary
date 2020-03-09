@@ -26,7 +26,7 @@ class StorageTest extends TestCase
     {
         parent::__construct($name, $data, $dataName);
 
-        $this->file = UploadedFile::fake()->image(Str::random() . '.png', '1', '1')->size(1);
+        $this->file = UploadedFile::fake()->image('test/'.Str::random().'.png', '1', '1')->size(1);
     }
 
     /**
@@ -48,7 +48,7 @@ class StorageTest extends TestCase
     public function testWrite()
     {
         try {
-            $path = Str::random();
+            $path = 'test/'.Str::random();
 
             $this->assertTrue(\Storage::cloud()->write("{$path}.png", $this->file->get()));
         } catch (FileNotFoundException $e) {
@@ -65,7 +65,7 @@ class StorageTest extends TestCase
     public function testWriteStream()
     {
         try {
-            $path = Str::random();
+            $path = 'test/'.Str::random();
 
             $tmpFile = tmpfile();
 
@@ -86,7 +86,7 @@ class StorageTest extends TestCase
     public function testUpdate()
     {
         try {
-            $path = Str::random();
+            $path = 'test/'.Str::random();
 
             \Storage::cloud()->write("{$path}.png", $this->file->get());
 
@@ -105,7 +105,7 @@ class StorageTest extends TestCase
     public function testUpdateStream()
     {
         try {
-            $path = Str::random();
+            $path = 'test/'.Str::random();
 
             $tmpFile = tmpfile();
 
@@ -126,7 +126,7 @@ class StorageTest extends TestCase
      */
     public function testRename()
     {
-        $this->assertTrue(\Storage::cloud()->rename($this->upload(), Str::random() . '.png'));
+        $this->assertTrue(\Storage::cloud()->rename($this->upload(), 'test/'.Str::random().'.png'));
     }
 
     /**
@@ -136,7 +136,7 @@ class StorageTest extends TestCase
      */
     public function testCopy()
     {
-        $this->assertTrue(\Storage::cloud()->copy($this->upload(), Str::random() . '.png'));
+        $this->assertTrue(\Storage::cloud()->copy($this->upload(), 'test/'.Str::random().'.png'));
     }
 
     /**
@@ -156,7 +156,7 @@ class StorageTest extends TestCase
      */
     public function testDeleteDir()
     {
-        $dirname = Str::random();
+        $dirname = 'test/'.Str::random();
 
         \Storage::cloud()->createDir($dirname);
 
@@ -170,7 +170,7 @@ class StorageTest extends TestCase
      */
     public function testCreateDir()
     {
-        $this->assertTrue(\Storage::cloud()->createDir(Str::random()));
+        $this->assertTrue(\Storage::cloud()->createDir('test/'.Str::random()));
     }
 
     /**
@@ -212,7 +212,7 @@ class StorageTest extends TestCase
      */
     public function testListContents()
     {
-        $path = Str::random();
+        $path = 'test/'.Str::random();
 
         $this->upload($path);
 
