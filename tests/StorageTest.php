@@ -5,6 +5,7 @@ namespace Yoelpc4\LaravelCloudinary\Tests;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Testing\File;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use Yoelpc4\LaravelCloudinary\Adapters\CloudinaryAdapter;
 
 class StorageTest extends TestCase
@@ -25,7 +26,7 @@ class StorageTest extends TestCase
     {
         parent::__construct($name, $data, $dataName);
 
-        $this->file = UploadedFile::fake()->image('fake.png', '1', '1')->size(1);
+        $this->file = UploadedFile::fake()->image(Str::random() . '.png', '1', '1')->size(1);
     }
 
     /**
@@ -47,7 +48,7 @@ class StorageTest extends TestCase
     public function testWrite()
     {
         try {
-            $path = \Str::random();
+            $path = Str::random();
 
             $this->assertTrue(\Storage::cloud()->write("{$path}.png", $this->file->get()));
         } catch (FileNotFoundException $e) {
@@ -64,7 +65,7 @@ class StorageTest extends TestCase
     public function testWriteStream()
     {
         try {
-            $path = \Str::random();
+            $path = Str::random();
 
             $tmpFile = tmpfile();
 
@@ -85,7 +86,7 @@ class StorageTest extends TestCase
     public function testUpdate()
     {
         try {
-            $path = \Str::random();
+            $path = Str::random();
 
             \Storage::cloud()->write("{$path}.png", $this->file->get());
 
@@ -104,7 +105,7 @@ class StorageTest extends TestCase
     public function testUpdateStream()
     {
         try {
-            $path = \Str::random();
+            $path = Str::random();
 
             $tmpFile = tmpfile();
 
@@ -125,7 +126,7 @@ class StorageTest extends TestCase
      */
     public function testRename()
     {
-        $this->assertTrue(\Storage::cloud()->rename($this->upload(), 'renamed.png'));
+        $this->assertTrue(\Storage::cloud()->rename($this->upload(), Str::random() . '.png'));
     }
 
     /**
@@ -135,7 +136,7 @@ class StorageTest extends TestCase
      */
     public function testCopy()
     {
-        $this->assertTrue(\Storage::cloud()->copy($this->upload(), 'copied.png'));
+        $this->assertTrue(\Storage::cloud()->copy($this->upload(), Str::random() . '.png'));
     }
 
     /**
@@ -155,9 +156,11 @@ class StorageTest extends TestCase
      */
     public function testDeleteDir()
     {
-        \Storage::cloud()->makeDirectory('test');
+        $dirname = Str::random();
 
-        $this->assertTrue(\Storage::cloud()->deleteDir('test'));
+        \Storage::cloud()->createDir($dirname);
+
+        $this->assertTrue(\Storage::cloud()->deleteDir($dirname));
     }
 
     /**
@@ -167,7 +170,7 @@ class StorageTest extends TestCase
      */
     public function testCreateDir()
     {
-        $this->assertTrue(\Storage::cloud()->createDir('test'));
+        $this->assertTrue(\Storage::cloud()->createDir(Str::random()));
     }
 
     /**
@@ -209,9 +212,11 @@ class StorageTest extends TestCase
      */
     public function testListContents()
     {
-        $this->upload('test');
+        $path = Str::random();
 
-        $this->assertIsArray(\Storage::cloud()->listContents('test'));
+        $this->upload($path);
+
+        $this->assertIsArray(\Storage::cloud()->listContents($path));
     }
 
     /**
