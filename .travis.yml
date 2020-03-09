@@ -1,0 +1,24 @@
+language: php
+
+os: linux
+
+php:
+  - 7.2
+  - 7.3
+  - 7.4
+
+env:
+  global:
+    - setup=basic
+
+install:
+  - if [[ $setup = 'basic' ]]; then travis_retry composer install --no-interaction --prefer-source; fi
+  - if [[ $setup = 'stable' ]]; then travis_retry composer update --prefer-source --no-interaction --prefer-stable; fi
+  - if [[ $setup = 'lowest' ]]; then travis_retry composer update --prefer-source --no-interaction --prefer-lowest --prefer-stable; fi
+
+script:
+  - composer validate
+  - vendor/bin/phpunit
+  - php coverage-checker.php coverage.xml 70
+  - curl --data-binary @codecov.yml https://codecov.io/validate
+  - bash <(curl -s https://codecov.io/bash)

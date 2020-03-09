@@ -1,0 +1,52 @@
+{
+    "name": "yoelpc4/laravel-cloudinary",
+    "description": "Laravel Cloudinary filesystem cloud driver.",
+    "keywords": [
+        "laravel",
+        "cloudinary",
+        "filesystem",
+        "cloud"
+    ],
+    "homepage": "https://github.com/yoelpc4/laravel-cloudinary",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Yoel Peter Chandra",
+            "email": "yoelpc4@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "cloudinary/cloudinary_php": "1.*",
+        "illuminate/contracts": "6.*",
+        "illuminate/support": "6.*",
+        "league/flysystem": "1.*"
+    },
+    "require-dev": {
+        "orchestra/testbench": "4.*",
+        "phpunit/phpunit": "8.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Yoelpc4\\LaravelCloudinary\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Yoelpc4\\LaravelCloudinary\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Yoelpc4\\LaravelCloudinary\\Providers\\CloudinaryServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
