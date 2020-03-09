@@ -261,7 +261,7 @@ class StorageTest extends TestCase
      * @param  string  $path
      * @return false|string
      */
-    protected function upload($path = '/')
+    protected function upload($path = 'test')
     {
         return $this->file->store($path, \Config::get('filesystems.cloud'));
     }
