@@ -125,9 +125,11 @@ class CloudinaryAdapter implements AdapterInterface
         try {
             $this->api->delete_folder($dirname);
         } catch (BadRequest $e) {
-            return false;
+            throw $e;
+//            return false;
         } catch (GeneralError $e) {
-            return false;
+            throw $e;
+//            return false;
         }
 
         return true;

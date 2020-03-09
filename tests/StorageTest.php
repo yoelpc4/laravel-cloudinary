@@ -158,9 +158,9 @@ class StorageTest extends TestCase
     {
         $dirname = Str::random();
 
-        if (\Storage::cloud()->createDir($dirname)) {
-            $this->assertTrue(\Storage::cloud()->deleteDir($dirname));
-        }
+        \Storage::cloud()->createDir($dirname);
+
+        $this->assertTrue(\Storage::cloud()->deleteDir($dirname));
     }
 
     /**
