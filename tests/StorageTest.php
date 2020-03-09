@@ -150,27 +150,17 @@ class StorageTest extends TestCase
     }
 
     /**
-     * Test for successful delete a directory.
+     * Test for successful create and delete a directory.
      *
      * @return void
      */
-    public function testDeleteDir()
+    public function testCreateAndDeleteDir()
     {
         $dirname = Str::random();
 
-        \Storage::cloud()->createDir($dirname);
+        $this->assertTrue(\Storage::cloud()->createDir($dirname));
 
         $this->assertTrue(\Storage::cloud()->deleteDir($dirname));
-    }
-
-    /**
-     * Test for successful create a directory.
-     *
-     * @return void
-     */
-    public function testCreateDir()
-    {
-        $this->assertTrue(\Storage::cloud()->createDir(Str::random()));
     }
 
     /**
