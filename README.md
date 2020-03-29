@@ -13,7 +13,7 @@ _Laravel Cloudinary filesystem cloud driver._
 ## Requirement
 
 - [Laravel](https://laravel.com)
-- [Cloudinary](http://cloudinary.com/)
+- [Cloudinary](http://cloudinary.com)
 
 ## Install
 
