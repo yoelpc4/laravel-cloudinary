@@ -1,6 +1,6 @@
 # Laravel Cloudinary
 
-[![Laravel 6.x][ico-laravel]][link-laravel]
+[![Laravel][ico-laravel]][link-laravel]
 [![Packagist][ico-packagist]][link-packagist]
 [![Build][ico-build]][link-build]
 [![Code Coverage][ico-code-coverage]][link-code-coverage]
@@ -12,7 +12,8 @@ _Laravel Cloudinary filesystem cloud driver._
 
 ## Requirement
 
-- [Laravel 6.x](https://laravel.com)
+- [Laravel](https://laravel.com)
+- [Cloudinary](http://cloudinary.com/)
 
 ## Install
 
