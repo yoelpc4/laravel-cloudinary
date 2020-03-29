@@ -1,26 +1,42 @@
+cache:
+  directories:
+    - $HOME/.composer/cache
+
 language: php
-
-os: linux
-
-php:
-  - 7.0
-  - 7.1
-  - 7.2
-  - 7.3
 
 env:
   global:
-    - setup=basic
+    - COVERAGE=0
 
-sudo: false
+matrix:
+  include:
+    - php: 7.0
+      env: LARAVEL='5.5.*' TESTBENCH='3.5.*'
+    - php: 7.1
+      env: LARAVEL='5.6.*' TESTBENCH='3.6.*'
+    - php: 7.1
+      env: LARAVEL='5.7.*' TESTBENCH='3.7.*'
+    - php: 7.1
+      env: LARAVEL='5.8.*' TESTBENCH='3.8.*'
+    - php: 7.2
+      env: LARAVEL='6.*' 'TESTBENCH='4.*'
+    - php: 7.2
+      env: COVERAGE=1 LARAVEL='7.*' 'TESTBENCH='5.*'
+  fast_finish: true
+
+before_script:
+  - composer config discard-changes true
+
+before_install:
+  - travis_retry composer self-update
+  - travis_retry composer require "laravel/framework:${LARAVEL}" "orchestra/testbench:${TESTBENCH}" --no-interaction --no-update
 
 install:
-  - if [[ $setup = 'basic' ]]; then travis_retry composer install --no-interaction --prefer-source; fi
-  - if [[ $setup = 'stable' ]]; then travis_retry composer update --prefer-source --no-interaction --prefer-stable; fi
-  - if [[ $setup = 'lowest' ]]; then travis_retry composer update --prefer-source --no-interaction --prefer-lowest --prefer-stable; fi
+  - travis_retry composer install --prefer-dist --no-interaction --no-suggest
 
 script:
   - vendor/bin/phpunit
-  - php coverage-checker.php coverage.xml 70
+
+after_success:
   - curl --data-binary @codecov.yml https://codecov.io/validate
   - bash <(curl -s https://codecov.io/bash)
