@@ -40,6 +40,16 @@ class StorageTest extends TestCase
     }
 
     /**
+     * Test for successful get the full path for the file at the given "short" path.
+     *
+     * @return void
+     */
+    public function testPath()
+    {
+        $this->assertIsString(\Storage::cloud()->path('/'));
+    }
+
+    /**
      * Test for successful write a new file.
      *
      * @return void

@@ -7,11 +7,12 @@ use Cloudinary\Api\BadRequest;
 use Cloudinary\Api\GeneralError;
 use Cloudinary\Uploader;
 use Exception;
+use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 
-class CloudinaryAdapter implements AdapterInterface
+class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
 {
     use NotSupportingVisibilityTrait;
 
