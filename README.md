@@ -33,6 +33,7 @@ FILESYSTEM_CLOUD=cloudinary
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_SECURE=true
 ```
 
 ## Filesystem Configuration
@@ -45,8 +46,12 @@ Register cloudinary driver configuration in config/filesystems.php at disks sect
     'api_key'    => env('CLOUDINARY_API_KEY'),
     'api_secret' => env('CLOUDINARY_API_SECRET'),
     'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+    'secure'     => env('CLOUDINARY_SECURE', true),
 ],
 ```
+
+The secure option is applied when generating url from storage, when `secure = true` will used `https` 
+otherwise `secure = false` will used `http` as protocol.
 
 ## Tips
 
