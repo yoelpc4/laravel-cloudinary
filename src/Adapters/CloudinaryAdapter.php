@@ -38,12 +38,12 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     /**
      * @inheritDoc
      */
-    public function write($path, $contents, Config $options)
+    public function write($path, $contents, Config $config)
     {
         $tmpFile = tmpfile();
 
         if (fwrite($tmpFile, $contents)) {
-            return $this->writeStream($path, $tmpFile, $options);
+            return $this->writeStream($path, $tmpFile, $config);
         }
 
         return false;
@@ -52,13 +52,13 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     /**
      * @inheritDoc
      */
-    public function writeStream($path, $resource, Config $options)
+    public function writeStream($path, $resource, Config $config)
     {
         $metadata = stream_get_meta_data($resource);
 
         $options = [
             'public_id'     => $this->preparePublicId($path),
-            'resource_type' => 'auto',
+            'resource_type' => $config->has('resource_type') ? $config->get('resource_type') : 'auto',
         ];
 
         return Uploader::upload($metadata['uri'], $options);
@@ -67,17 +67,17 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     /**
      * @inheritDoc
      */
-    public function update($path, $contents, Config $options)
+    public function update($path, $contents, Config $config)
     {
-        return $this->write($path, $contents, $options);
+        return $this->write($path, $contents, $config);
     }
 
     /**
      * @inheritDoc
      */
-    public function updateStream($path, $resource, Config $options)
+    public function updateStream($path, $resource, Config $config)
     {
-        return $this->writeStream($path, $resource, $options);
+        return $this->writeStream($path, $resource, $config);
     }
 
     /**
@@ -137,7 +137,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     /**
      * @inheritDoc
      */
-    public function createDir($dirname, Config $options)
+    public function createDir($dirname, Config $config)
     {
         try {
             return $this->api->create_folder($dirname);
