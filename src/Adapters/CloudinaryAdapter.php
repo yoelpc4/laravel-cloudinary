@@ -56,9 +56,13 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     {
         $metadata = stream_get_meta_data($resource);
 
+        $resourceType = $config->has('resource_type') ? $config->get('resource_type') : 'auto';
+
         $options = [
-            'public_id'     => $this->preparePublicId($path),
-            'resource_type' => $config->has('resource_type') ? $config->get('resource_type') : 'auto',
+            'public_id'       => $this->preparePublicId($path, $resourceType),
+            'use_filename'    => true,
+            'unique_filename' => false,
+            'resource_type'   => $resourceType,
         ];
 
         return Uploader::upload($metadata['uri'], $options);
@@ -290,9 +294,17 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getUrl($path)
     {
-        return cloudinary_url($path, [
+        if (is_array($path)) {
+            $options = $path;
+
+            $path = $options['path'];
+        } else {
+            $options = [];
+        }
+
+        return cloudinary_url($path, array_merge([
             'secure' => \Config::get('filesystems.disks.cloudinary.secure'),
-        ]);
+        ], $options));
     }
 
     /**
@@ -361,16 +373,21 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * Prepare cloudinary public id
      *
      * @param  string  $path
+     * @param  string  $resourceType
      * @return string
+     * @see https://cloudinary.com/documentation/image_upload_api_reference
      */
-    protected function preparePublicId(string $path)
+    protected function preparePublicId(string $path, string $resourceType = 'auto')
     {
         $pathInfo = pathinfo($path);
 
+        // for raw resource type use filename with extension otherwise filename only
+        $endpoint = $resourceType === 'raw' ? $pathInfo['basename'] : $pathInfo['filename'];
+
         if ($pathInfo['dirname'] != '.') {
-            return "{$pathInfo['dirname']}/{$pathInfo['filename']}";
+            return "{$pathInfo['dirname']}/{$endpoint}";
         } else {
-            return $pathInfo['filename'];
+            return $endpoint;
         }
     }
 }

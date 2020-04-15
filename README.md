@@ -55,12 +55,26 @@ otherwise `secure = false` will used `http` as protocol.
 
 ## Tips
 
-To use pre-defined filename as public ID when uploading to cloudinary, you need to tweak some configuration 
+1. To use pre-defined filename as public ID when uploading to cloudinary, you need to tweak some configuration 
 in `Settings -> Upload -> Upload presets`. 
-- Click edit button on signed mode preset, initial preset is `ml_default` you can updates it.
-- Turn on `Use filename or externally defined public ID` to using the pre-defined filename instead of random characters.
-- Turn off `Unique filename` to prevent cloudinary from adding random characters at the end of filename.
-- Click `Save` and you're good to go.
+    - Click edit button on signed mode preset, initial preset is `ml_default` you can updates it.
+    - Turn on `Use filename or externally defined public ID` to using the pre-defined filename instead of random characters.
+    - Turn off `Unique filename` to prevent cloudinary from adding random characters at the end of filename.
+    - Click `Save` and you're good to go.
+
+2. Upload a raw file by adding array of options as third parameter in 
+"put", "putStream", "putFile", "putFileAs", "write", or "writeStream" method of Storage facade i.e:
+    ```php
+    \Storage::cloud()->put('documents/report.xlsx', \File::get('local/report.xlsx'), ['resource_type' => 'raw']);
+    ```
+
+3. Generate a raw file url by adding array or options as first parameter in "url" method of Storage facade i.e:
+    ```php
+    \Storage::cloud()->url([
+        'path'          => 'documents/report.xlsx',
+        'resource_type' => 'raw',
+    ]);
+    ```  
 
 ## License
 
