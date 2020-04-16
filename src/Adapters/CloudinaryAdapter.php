@@ -294,17 +294,21 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getUrl($path)
     {
-        if (is_array($path)) {
-            $options = $path;
+        $options = [
+            'secure' => \Config::get('filesystems.disks.cloudinary.secure'),
+        ];
 
-            $path = $options['path'];
-        } else {
-            $options = [];
+        if (is_array($path)) {
+            foreach ($path as $key => $value) {
+                $options[$key] = $value;
+            }
+
+            unset($options['path']);
+
+            $path = $path['path'];
         }
 
-        return cloudinary_url($path, array_merge([
-            'secure' => \Config::get('filesystems.disks.cloudinary.secure'),
-        ], $options));
+        return cloudinary_url($path, $options);
     }
 
     /**
