@@ -11,6 +11,7 @@ use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
+use Yoelpc4\LaravelCloudinary\Concerns\CloudinaryManager;
 
 class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
 {
@@ -24,6 +25,11 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     protected $api;
 
     /**
+     * @var CloudinaryManager
+     */
+    protected $cloudinaryManager;
+
+    /**
      * CloudinaryAdapter constructor.
      *
      * @param  array  $options
@@ -33,6 +39,8 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
         \Cloudinary::config($options);
 
         $this->api = new Api;
+
+        $this->cloudinaryManager = new CloudinaryManager;
     }
 
     /**
@@ -56,13 +64,13 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     {
         $metadata = stream_get_meta_data($resource);
 
-        $resourceType = $config->has('resource_type') ? $config->get('resource_type') : 'auto';
+        $this->cloudinaryManager->init($path);
 
         $options = [
-            'public_id'       => $this->preparePublicId($path, $resourceType),
+            'public_id'       => $this->cloudinaryManager->getPublicId(),
             'use_filename'    => true,
             'unique_filename' => false,
-            'resource_type'   => $resourceType,
+            'resource_type'   => $this->cloudinaryManager->getResourceType(),
         ];
 
         return Uploader::upload($metadata['uri'], $options);
@@ -89,13 +97,17 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function rename($path, $newpath)
     {
-        $fromPublicId = $this->preparePublicId($path);
+        $fromPublicId = $this->cloudinaryManager->init($path)->getPublicId();
 
-        $toPublicId = $this->preparePublicId($newpath);
+        $toPublicId = $this->cloudinaryManager->init($newpath)->getPublicId();
 
-        $result = Uploader::rename($fromPublicId, $toPublicId);
+        $options = [
+            'resource_type' => $this->cloudinaryManager->getResourceType(),
+        ];
 
-        return $result['public_id'] == pathinfo($newpath)['filename'];
+        $result = Uploader::rename($fromPublicId, $toPublicId, $options);
+
+        return $result['public_id'] == $toPublicId;
     }
 
     /**
@@ -103,11 +115,16 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function copy($path, $newpath)
     {
-        $url = cloudinary_url_internal($path);
+        $this->cloudinaryManager->init($newpath);
 
-        $result = Uploader::upload($url, ['public_id' => $newpath]);
+        $options = [
+            'public_id'     => $this->cloudinaryManager->getPublicId(),
+            'resource_type' => $this->cloudinaryManager->getResourceType(),
+        ];
 
-        return is_array($result) ? $result['public_id'] == $newpath : false;
+        $result = Uploader::upload($this->getUrl($path), $options);
+
+        return is_array($result) ? $result['public_id'] === $newpath : false;
     }
 
     /**
@@ -115,9 +132,14 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function delete($path)
     {
-        $result = Uploader::destroy($this->preparePublicId($path), [
-            'invalidate' => true,
-        ]);
+        $this->cloudinaryManager->init($path);
+
+        $options = [
+            'resource_type' => $this->cloudinaryManager->getResourceType(),
+            'invalidate'    => true,
+        ];
+
+        $result = Uploader::destroy($this->cloudinaryManager->getPublicId(), $options);
 
         return is_array($result) ? $result['result'] == 'ok' : false;
     }
@@ -153,13 +175,19 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritDoc
+     * @inheritoc
      */
     public function has($path)
     {
+        $this->cloudinaryManager->init($path);
+
+        $options = [
+            'resource_type' => $this->cloudinaryManager->getResourceType(),
+        ];
+
         try {
-            $this->api->resource($this->preparePublicId($path));
-        } catch (Exception $e) {
+            $this->api->resource($this->cloudinaryManager->getPublicId(), $options);
+        } catch (GeneralError $e) {
             return false;
         }
 
@@ -171,7 +199,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function read($path)
     {
-        $contents = file_get_contents(cloudinary_url($path));
+        $contents = file_get_contents($this->getUrl($path));
 
         return compact('contents', 'path');
     }
@@ -182,7 +210,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     public function readStream($path)
     {
         try {
-            $stream = fopen(cloudinary_url($path), 'r');
+            $stream = fopen($this->getUrl($path), 'r');
         } catch (Exception $e) {
             return false;
         }
@@ -279,8 +307,14 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getResource($path)
     {
+        $this->cloudinaryManager->init($path);
+
+        $options = [
+            'resource_type' => $this->cloudinaryManager->getResourceType(),
+        ];
+
         try {
-            return (array) $this->api->resource($this->preparePublicId($path));
+            return (array) $this->api->resource($this->cloudinaryManager->getPublicId(), $options);
         } catch (GeneralError $e) {
             throw $e;
         }
@@ -307,6 +341,8 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
 
             $path = $path['path'];
         }
+
+        $options['resource_type'] = $this->cloudinaryManager->init($path)->getResourceType();
 
         return cloudinary_url($path, $options);
     }
@@ -340,7 +376,9 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     protected function prepareMimetype($resource)
     {
-        $mimetype = $resource['resource_type'].'/'.$resource['format'];
+        $format = isset($resource['format']) ? "/{$resource['format']}" : '';
+
+        $mimetype = "{$resource['resource_type']}{$format}";
 
         $mimetype = str_replace('jpg', 'jpeg', $mimetype);
 
@@ -371,27 +409,5 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
         $size = $resource['bytes'];
 
         return compact('size');
-    }
-
-    /**
-     * Prepare cloudinary public id
-     *
-     * @param  string  $path
-     * @param  string  $resourceType
-     * @return string
-     * @see https://cloudinary.com/documentation/image_upload_api_reference
-     */
-    protected function preparePublicId(string $path, string $resourceType = 'auto')
-    {
-        $pathInfo = pathinfo($path);
-
-        // for raw resource type use filename with extension otherwise filename only
-        $endpoint = $resourceType === 'raw' ? $pathInfo['basename'] : $pathInfo['filename'];
-
-        if ($pathInfo['dirname'] != '.') {
-            return "{$pathInfo['dirname']}/{$endpoint}";
-        } else {
-            return $endpoint;
-        }
     }
 }
