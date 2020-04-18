@@ -28,6 +28,12 @@ class DocumentMock implements Mockable
      */
     public function make(string $name)
     {
+        $fake = UploadedFile::fake();
+
+        if (!method_exists($fake, 'createWithContent')) {
+            return UploadedFile::fake()->create($name, 12, 'application/pdf');
+        }
+
         return UploadedFile::fake()->createWithContent($name, $this->contents);
     }
 }
