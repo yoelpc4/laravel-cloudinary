@@ -2,6 +2,8 @@
 
 namespace Yoelpc4\LaravelCloudinary\Mocks;
 
+use Illuminate\Http\Testing\File;
+use Illuminate\Http\Testing\FileFactory;
 use Illuminate\Http\UploadedFile;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
@@ -30,8 +32,26 @@ class DocumentMock implements Mockable
     {
         $fake = UploadedFile::fake();
 
+        return $this->createWithContent($fake, $name);
+    }
+
+    /**
+     * Create with content with polyfill
+     *
+     * @param  FileFactory  $fake
+     * @param  string  $name
+     * @return File|mixed
+     */
+    protected function createWithContent(FileFactory $fake, string $name)
+    {
         if (! method_exists($fake, 'createWithContent')) {
-            return $fake->create($name, 12, 'application/pdf');
+            $tmpfile = tmpfile();
+
+            fwrite($tmpfile, $this->contents);
+
+            return tap(new File($name, $tmpfile), function ($file) use ($tmpfile) {
+                $file->sizeToReport = fstat($tmpfile)['size'];
+            });
         }
 
         return $fake->createWithContent($name, $this->contents);
