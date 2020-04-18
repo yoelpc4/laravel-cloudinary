@@ -57,7 +57,7 @@ class PublicId implements ConcernAware
         // for raw resource type use basename otherwise filename
         $filename = $this->resourceType->value() === 'raw' ? $this->basename : $this->filename;
 
-        // if directory exists prepend with dirname
+        // if directory exists prepends with dirname
         if ($this->dirname != '.') {
             $this->publicId = "{$this->dirname}/{$filename}";
         } else {

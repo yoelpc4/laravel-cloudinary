@@ -5,7 +5,6 @@ namespace Yoelpc4\LaravelCloudinary\Tests;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Testing\File;
 use Illuminate\Support\Str;
-use League\Flysystem\FileExistsException;
 use Yoelpc4\LaravelCloudinary\Adapters\CloudinaryAdapter;
 use Yoelpc4\LaravelCloudinary\Mocks\Mockable;
 
@@ -277,7 +276,7 @@ abstract class FileTestCase extends TestCase
     }
 
     /**
-     * Upload mock file to storage
+     * Upload file to cloud storage
      *
      * @return false|string
      */

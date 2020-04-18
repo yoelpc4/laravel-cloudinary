@@ -115,6 +115,8 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function copy($path, $newpath)
     {
+        $url = $this->getUrl($path);
+
         $this->cloudinaryManager->init($newpath);
 
         $options = [
@@ -122,9 +124,9 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
             'resource_type' => $this->cloudinaryManager->getResourceType(),
         ];
 
-        $result = Uploader::upload($this->getUrl($path), $options);
+        $result = Uploader::upload($url, $options);
 
-        return is_array($result) ? $result['public_id'] === $newpath : false;
+        return is_array($result) ? $result['public_id'] === $this->cloudinaryManager->getPublicId() : false;
     }
 
     /**
@@ -175,7 +177,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritoc
+     * @inheritDoc
      */
     public function has($path)
     {
@@ -187,7 +189,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
 
         try {
             $this->api->resource($this->cloudinaryManager->getPublicId(), $options);
-        } catch (GeneralError $e) {
+        } catch (Exception $e) {
             return false;
         }
 

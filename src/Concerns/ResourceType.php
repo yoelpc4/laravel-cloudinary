@@ -35,6 +35,8 @@ class ResourceType implements ConcernAware
         foreach ($list as $type => $extensions) {
             if (in_array($this->extension, $extensions)) {
                 $this->resourceType = $type;
+
+                break;
             }
         }
 
