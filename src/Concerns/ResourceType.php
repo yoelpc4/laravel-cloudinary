@@ -30,11 +30,11 @@ class ResourceType implements ConcernAware
      */
     public function handle()
     {
-        $list = config('filesystems.disks.cloudinary.extensions', []);
+        $resourceTypes = config('filesystems.disks.cloudinary.resource_types', []);
 
-        foreach ($list as $type => $extensions) {
+        foreach ($resourceTypes as $resourceType => $extensions) {
             if (in_array($this->extension, $extensions)) {
-                $this->resourceType = $type;
+                $this->resourceType = $resourceType;
 
                 break;
             }

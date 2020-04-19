@@ -42,12 +42,12 @@ Register cloudinary driver configuration in config/filesystems.php at disks sect
 
 ```php
 'cloudinary' => [
-    'driver'     => 'cloudinary',
-    'api_key'    => env('CLOUDINARY_API_KEY'),
-    'api_secret' => env('CLOUDINARY_API_SECRET'),
-    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-    'secure'     => env('CLOUDINARY_SECURE', true),
-    'extensions' => [
+    'driver'         => 'cloudinary',
+    'api_key'        => env('CLOUDINARY_API_KEY'),
+    'api_secret'     => env('CLOUDINARY_API_SECRET'),
+    'cloud_name'     => env('CLOUDINARY_CLOUD_NAME'),
+    'secure'         => env('CLOUDINARY_SECURE', true),
+    'resource_types' => [
         'image' => [
             'png',
             'jpeg',
@@ -72,7 +72,7 @@ Register cloudinary driver configuration in config/filesystems.php at disks sect
 The secure option is applied when generating url from storage, when `secure = true` will used `https` 
 otherwise `secure = false` will used `http` as protocol.
 
-The extensions option is applied when generating resource type & public id whenever we call storage method such as
+The resource_types option is applied when generating resource type & public id whenever we call storage method such as
 write, writeStream, url, has, etc. Registers the appropriate file extensions according to cloudinary resource type e.g: 
 png in image, mp4 in video, xlsx in raw, for audio files registers in video. `The default resource type is image`, 
 for more reference see https://cloudinary.com/documentation/image_upload_api_reference#upload_method.
