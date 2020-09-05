@@ -90,15 +90,15 @@ in `Settings -> Upload -> Upload presets` as follows:
 The Laravel Cloudinary is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
 
 [ico-packagist]: https://img.shields.io/packagist/v/yoelpc4/laravel-cloudinary.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/yoelpc4/laravel-cloudinary.svg?style=flat-square
 [ico-build]: https://travis-ci.com/yoelpc4/laravel-cloudinary.svg?branch=master&style=flat-square
 [ico-code-coverage]: https://codecov.io/gh/yoelpc4/laravel-cloudinary/branch/master/graph/badge.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/yoelpc4/laravel-cloudinary.svg?style=flat-square
 [ico-license]: https://img.shields.io/packagist/l/yoelpc4/laravel-cloudinary.svg?style=flat-square
 [ico-code-of-conduct]: https://img.shields.io/badge/contributor%20covenant-v1.4-ff69b4.svg
 
 [link-packagist]: https://packagist.org/packages/yoelpc4/laravel-cloudinary
+[link-downloads]: https://packagist.org/packages/yoelpc4/laravel-cloudinary
 [link-build]: https://travis-ci.com/yoelpc4/laravel-cloudinary
 [link-code-coverage]: https://codecov.io/gh/yoelpc4/laravel-cloudinary
-[link-downloads]: https://packagist.org/packages/yoelpc4/laravel-cloudinary
 [link-license]: LICENSE.md
 [link-code-of-conduct]: CODE_OF_CONDUCT.md
