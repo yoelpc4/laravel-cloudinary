@@ -89,7 +89,6 @@ in `Settings -> Upload -> Upload presets` as follows:
 
 The Laravel Cloudinary is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
 
-[ico-laravel]: https://img.shields.io/badge/framework-laravel-red.svg?style=flat-square
 [ico-packagist]: https://img.shields.io/packagist/v/yoelpc4/laravel-cloudinary.svg?style=flat-square
 [ico-build]: https://travis-ci.com/yoelpc4/laravel-cloudinary.svg?branch=master&style=flat-square
 [ico-code-coverage]: https://codecov.io/gh/yoelpc4/laravel-cloudinary/branch/master/graph/badge.svg?style=flat-square
