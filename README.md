@@ -1,11 +1,11 @@
 # Laravel Cloudinary
 
 [![Packagist][ico-packagist]][link-packagist]
-[![Downloads][ico-downloads]][link-downloads]
+[![Downloads][ico-downloads]][link-packagist]
 [![Build][ico-build]][link-build]
 [![Code Coverage][ico-code-coverage]][link-code-coverage]
-[![License][ico-license]][link-license]
-[![Contributor Covenant][ico-code-of-conduct]][link-code-of-conduct]
+[![Software License][ico-license]](LICENSE.md)
+[![Contributor Covenant][ico-code-of-conduct]](CODE_OF_CONDUCT.md)
 
 _Laravel Cloudinary filesystem cloud driver._
 
@@ -97,8 +97,5 @@ The Laravel Cloudinary is open-sourced software licensed under the [MIT license]
 [ico-code-of-conduct]: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
 
 [link-packagist]: https://packagist.org/packages/yoelpc4/laravel-cloudinary
-[link-downloads]: https://packagist.org/packages/yoelpc4/laravel-cloudinary
 [link-build]: https://travis-ci.com/yoelpc4/laravel-cloudinary
 [link-code-coverage]: https://codecov.io/gh/yoelpc4/laravel-cloudinary
-[link-license]: LICENSE.md
-[link-code-of-conduct]: CODE_OF_CONDUCT.md
