@@ -331,7 +331,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     public function getUrl($path)
     {
         $options = [
-            'secure' => \Config::get('filesystems.disks.cloudinary.secure'),
+            'secure' => config('filesystems.disks.cloudinary.secure'),
         ];
 
         if (is_array($path)) {
@@ -376,7 +376,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  array  $resource
      * @return array
      */
-    protected function prepareMimetype($resource)
+    protected function prepareMimetype(array $resource)
     {
         $format = isset($resource['format']) ? "/{$resource['format']}" : '';
 
@@ -393,7 +393,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  array  $resource
      * @return array
      */
-    protected function prepareTimestamp($resource)
+    protected function prepareTimestamp(array $resource)
     {
         $timestamp = strtotime($resource['created_at']);
 
@@ -406,7 +406,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  array  $resource
      * @return array
      */
-    protected function prepareSize($resource)
+    protected function prepareSize(array $resource)
     {
         $size = $resource['bytes'];
 

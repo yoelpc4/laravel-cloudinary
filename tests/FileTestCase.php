@@ -282,7 +282,7 @@ abstract class FileTestCase extends TestCase
      */
     protected function upload()
     {
-        return $this->file->store("test/{$this->directory()}", \Config::get('filesystems.cloud'));
+        return $this->file->store("test/{$this->directory()}", config('filesystems.cloud'));
     }
 
     /**

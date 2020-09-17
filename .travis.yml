@@ -6,6 +6,8 @@ language: php
 
 matrix:
   include:
+    - php: 7.3
+      env: LARAVEL='8.*' 'TESTBENCH='6.*' PHPUNIT='9.*'
     - php: 7.2
       env: LARAVEL='7.*' 'TESTBENCH='5.*' PHPUNIT='8.4.*'
     - php: 7.2

@@ -19,13 +19,15 @@
     "require": {
         "php": ">=7.1",
         "cloudinary/cloudinary_php": "1.*",
-        "illuminate/contracts": "7.*|6.*|5.8.*",
-        "illuminate/support": "7.*|6.*|5.8.*",
+        "illuminate/contracts": "8.*|7.*|6.*|5.8.*",
+        "illuminate/filesystem": "8.*|7.*|6.*|5.8.*",
+        "illuminate/http": "8.*|7.*|6.*|5.8.*",
+        "illuminate/support": "8.*|7.*|6.*|5.8.*",
         "league/flysystem": "1.*"
     },
     "require-dev": {
-        "orchestra/testbench": "5.*|4.*|3.8.*",
-        "phpunit/phpunit": "8.4.*|8.3.*|7.5.*"
+        "orchestra/testbench": "6.*|5.*|4.*|3.8.*",
+        "phpunit/phpunit": "9.*|8.4.*|8.3.*|7.5.*"
     },
     "autoload": {
         "psr-4": {
