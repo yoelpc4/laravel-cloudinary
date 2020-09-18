@@ -1,6 +1,6 @@
 <?php
 
-namespace Yoelpc4\LaravelCloudinary\Mocks;
+namespace Yoelpc4\LaravelCloudinary\Tests\Mocks;
 
 use Illuminate\Http\UploadedFile;
 

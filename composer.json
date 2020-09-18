@@ -42,7 +42,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Yoelpc4\\LaravelCloudinary\\Providers\\CloudinaryServiceProvider"
+                "Yoelpc4\\LaravelCloudinary\\CloudinaryServiceProvider"
             ]
         }
     },

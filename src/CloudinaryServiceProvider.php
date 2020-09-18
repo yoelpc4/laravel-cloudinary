@@ -1,6 +1,6 @@
 <?php
 
-namespace Yoelpc4\LaravelCloudinary\Providers;
+namespace Yoelpc4\LaravelCloudinary;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;

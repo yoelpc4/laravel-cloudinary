@@ -2,7 +2,7 @@
 
 namespace Yoelpc4\LaravelCloudinary\Tests;
 
-use Yoelpc4\LaravelCloudinary\Mocks\DocumentMock;
+use Yoelpc4\LaravelCloudinary\Tests\Mocks\DocumentMock;
 
 class DocumentTest extends FileTestCase
 {

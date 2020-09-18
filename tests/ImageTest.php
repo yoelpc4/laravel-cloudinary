@@ -2,7 +2,7 @@
 
 namespace Yoelpc4\LaravelCloudinary\Tests;
 
-use Yoelpc4\LaravelCloudinary\Mocks\ImageMock;
+use Yoelpc4\LaravelCloudinary\Tests\Mocks\ImageMock;
 
 class ImageTest extends FileTestCase
 {

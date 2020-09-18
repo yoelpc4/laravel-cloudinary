@@ -4,7 +4,7 @@ namespace Yoelpc4\LaravelCloudinary\Tests;
 
 use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
-use Yoelpc4\LaravelCloudinary\Providers\CloudinaryServiceProvider;
+use Yoelpc4\LaravelCloudinary\CloudinaryServiceProvider;
 
 abstract class TestCase extends OrchestraTestCase
 {
