@@ -2,11 +2,13 @@
 
 namespace Yoelpc4\LaravelCloudinary\Tests;
 
+use Illuminate\Contracts\Filesystem\FileExistsException;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Testing\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Yoelpc4\LaravelCloudinary\Adapters\CloudinaryAdapter;
-use Yoelpc4\LaravelCloudinary\Mocks\Mockable;
+use Yoelpc4\LaravelCloudinary\Tests\Mocks\Mockable;
 
 abstract class FileTestCase extends TestCase
 {
@@ -51,62 +53,55 @@ abstract class FileTestCase extends TestCase
     abstract protected function directory();
 
     /**
-     * Test for proper cloud adapter instance.
-     *
      */
     public function testCloudAdapter()
     {
-        $this->assertTrue(\Storage::cloud()->getAdapter() instanceof CloudinaryAdapter);
+        $this->assertInstanceOf(CloudinaryAdapter::class, Storage::cloud()->getAdapter());
     }
 
     /**
-     * Test for successful get the full path for the file at the given "short" path.
-     *
      */
     public function testPath()
     {
-        $this->assertIsString(\Storage::cloud()->path('/'));
+        $this->assertIsString(Storage::cloud()->path('/'));
     }
 
     /**
-     * Test for successful write a new file.
-     *
      * @throws FileNotFoundException
      */
     public function testWrite()
     {
         try {
-            $this->assertTrue(\Storage::cloud()->write($this->randomPath($this->extension()), $this->file->get()));
+            $this->assertTrue(Storage::cloud()->write($this->randomPath($this->extension()), $this->file->get()));
         } catch (FileNotFoundException $e) {
             throw $e;
         }
     }
 
     /**
-     * Test for successful write a new file using a stream.
-     *
+     * @throws FileExistsException
      * @throws FileNotFoundException
      */
     public function testWriteStream()
     {
         $isUpdated = false;
 
+        $tmpFile = tmpfile();
+
         try {
-            $tmpFile = tmpfile();
-
             if (fwrite($tmpFile, $this->file->get())) {
-                $isUpdated = \Storage::cloud()->writeStream($this->randomPath($this->extension()), $tmpFile);
+                $isUpdated = Storage::cloud()->writeStream($this->randomPath($this->extension()), $tmpFile);
             }
-
-            $this->assertTrue($isUpdated);
+        } catch (FileExistsException $e) {
+            throw $e;
         } catch (FileNotFoundException $e) {
             throw $e;
         }
+
+        $this->assertTrue($isUpdated);
     }
 
     /**
-     * Test for successful update a file.
-     *
      * @throws FileNotFoundException
      */
     public function testUpdate()
@@ -116,8 +111,8 @@ abstract class FileTestCase extends TestCase
         $path = $this->randomPath($this->extension());
 
         try {
-            if (\Storage::cloud()->write($path, $this->file->get())) {
-                $isUpdated = \Storage::cloud()->update($path, $this->file->get());
+            if (Storage::cloud()->write($path, $this->file->get())) {
+                $isUpdated = Storage::cloud()->update($path, $this->file->get());
             }
         } catch (FileNotFoundException $e) {
             throw $e;
@@ -127,8 +122,7 @@ abstract class FileTestCase extends TestCase
     }
 
     /**
-     * Test for successful update a file using a stream.
-     *
+     * @throws FileExistsException
      * @throws FileNotFoundException
      */
     public function testUpdateStream()
@@ -137,150 +131,131 @@ abstract class FileTestCase extends TestCase
 
         $path = $this->randomPath($this->extension());
 
-        try {
-            $tmpFile = tmpfile();
+        $tmpFile = tmpfile();
 
+        try {
             if (fwrite($tmpFile, $this->file->get())) {
-                if (\Storage::cloud()->writeStream($path, $tmpFile)) {
-                    $isUpdated = \Storage::cloud()->updateStream($path, $tmpFile);
+                if (Storage::cloud()->writeStream($path, $tmpFile)) {
+                    $isUpdated = Storage::cloud()->updateStream($path, $tmpFile);
                 }
             }
-
-            $this->assertTrue($isUpdated);
+        } catch (FileExistsException $e) {
+            throw $e;
         } catch (FileNotFoundException $e) {
             throw $e;
         }
+
+        $this->assertTrue($isUpdated);
     }
 
     /**
-     * Test for successful rename a file.
-     *
      */
     public function testRename()
     {
-        $this->assertTrue(\Storage::cloud()->rename($this->upload(), Str::random().'.'.$this->extension()));
+        $this->assertTrue(Storage::cloud()->rename($this->storeFile(), Str::random().'.'.$this->extension()));
     }
 
     /**
-     * Test for successful copy a file.
-     *
      */
     public function testCopy()
     {
-        $this->assertTrue(\Storage::cloud()->copy($this->upload(), Str::random().'.'.$this->extension()));
+        $this->assertTrue(Storage::cloud()->copy($this->storeFile(), Str::random().'.'.$this->extension()));
     }
 
     /**
-     * Test for successful delete a file.
-     *
      */
     public function testDelete()
     {
-        $this->assertTrue(\Storage::cloud()->delete($this->upload()));
+        $this->assertTrue(Storage::cloud()->delete($this->storeFile()));
     }
 
     /**
-     * Test for successful create and delete a directory.
-     *
      */
     public function testCreateDir()
     {
-        $this->assertTrue(\Storage::cloud()->createDir($this->randomPath()));
+        $this->assertTrue(Storage::cloud()->createDir($this->randomPath()));
     }
 
     /**
-     * Test for successful check whether a file exists.
-     *
      */
     public function testHas()
     {
-        $this->assertTrue(\Storage::cloud()->has($this->upload()));
+        $this->assertTrue(Storage::cloud()->has($this->storeFile()));
     }
 
     /**
-     * Test for successful read a file.
-     *
      */
     public function testRead()
     {
-        $this->assertIsString(\Storage::cloud()->read($this->upload()));
+        $this->assertIsString(Storage::cloud()->read($this->storeFile()));
     }
 
     /**
-     * Test for successful read a file as a stream.
-     *
+     * @throws FileNotFoundException
      */
     public function testReadStream()
     {
-        \Storage::fake()->put('/fake.png', \Storage::cloud()->readStream($this->upload()));
+        try {
+            Storage::fake()->put('/fake.png', Storage::cloud()->readStream($this->storeFile()));
+        } catch (FileNotFoundException $e) {
+            throw $e;
+        }
 
-        \Storage::assertExists('/fake.png');
+        Storage::assertExists('/fake.png');
     }
 
     /**
-     * Test for successful list contents of a directory.
-     *
      */
     public function testListContents()
     {
         $path = $this->randomPath();
 
-        $this->upload($path);
+        $this->storeFile();
 
-        $this->assertIsArray(\Storage::cloud()->listContents($path));
+        $this->assertIsArray(Storage::cloud()->listContents($path));
     }
 
     /**
-     * Test for successful get all the meta data of a file or directory.
-     *
      */
     public function testGetMetadata()
     {
-        $this->assertIsArray(\Storage::cloud()->getMetadata($this->upload()));
+        $this->assertIsArray(Storage::cloud()->getMetadata($this->storeFile()));
     }
 
     /**
-     * Test for successful get the size of a file.
-     *
      */
     public function testGetSize()
     {
-        $this->assertIsInt(\Storage::cloud()->getSize($this->upload()));
+        $this->assertIsInt(Storage::cloud()->getSize($this->storeFile()));
     }
 
     /**
-     * Test for successful get the mimetype of a file.
-     *
      */
     public function testGetMimetype()
     {
-        $this->assertIsString(\Storage::cloud()->getMimetype($this->upload()));
+        $this->assertIsString(Storage::cloud()->getMimetype($this->storeFile()));
     }
 
     /**
-     * Test for successful get the timestamp of a file.
-     *
      */
     public function testGetTimestamp()
     {
-        $this->assertIsInt(\Storage::cloud()->getTimestamp($this->upload()));
+        $this->assertIsInt(Storage::cloud()->getTimestamp($this->storeFile()));
     }
 
     /**
-     * Test for successful get the URL for the file at the given path.
-     *
      */
     public function testUrl()
     {
-        $this->assertStringStartsWith('http', \Storage::cloud()->url($this->upload()));
+        $this->assertStringStartsWith('http', Storage::cloud()->url($this->storeFile()));
     }
 
     /**
-     * Upload file to cloud storage
+     * Store the uploaded file to the cloud storage
      *
      * @return false|string
      */
-    protected function upload()
+    protected function storeFile()
     {
         return $this->file->store("test/{$this->directory()}", config('filesystems.cloud'));
     }
@@ -288,7 +263,7 @@ abstract class FileTestCase extends TestCase
     /**
      * Get random path
      *
-     * @param  string  $extension
+     * @param  string|null  $extension
      * @return string
      */
     protected function randomPath(string $extension = null)

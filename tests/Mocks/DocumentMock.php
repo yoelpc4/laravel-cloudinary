@@ -2,10 +2,10 @@
 
 namespace Yoelpc4\LaravelCloudinary\Tests\Mocks;
 
+use Exception;
 use Illuminate\Http\Testing\File;
 use Illuminate\Http\Testing\FileFactory;
 use Illuminate\Http\UploadedFile;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class DocumentMock implements Mockable
 {
@@ -17,11 +17,12 @@ class DocumentMock implements Mockable
     /**
      * DocumentMock constructor.
      *
+     * @throws Exception
      */
     public function __construct()
     {
         if (! $this->contents = file_get_contents($url = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf')) {
-            throw new FileException("Failed to reads entire file into a string from [{$url}]");
+            throw new Exception("Failed to reads entire file into a string from [{$url}]");
         }
     }
 

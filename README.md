@@ -12,19 +12,19 @@ _Laravel Cloudinary filesystem cloud driver._
 ## Requirement
 
 - [Laravel](https://laravel.com)
-- [Cloudinary](http://cloudinary.com)
 
 ## Install
 
 Require this package with composer via command:
 
-```bash
+```shell
 composer require yoelpc4/laravel-cloudinary
 ```
 
-## Environment
+## Environment Variable
 
-Get your Cloudinary account details at https://cloudinary.com/console, then add these lines to your .env.
+Register your Cloudinary account details [here](https://cloudinary.com/console).
+Then add these lines to your .env.
 
 ```dotenv
 FILESYSTEM_CLOUD=cloudinary
@@ -37,7 +37,7 @@ CLOUDINARY_SECURE=true
 
 ## Filesystem Configuration
 
-Register cloudinary driver configuration in config/filesystems.php at disks section as follows
+Register cloudinary driver configuration in `config/filesystems.php` at disks section as follows
 
 ```php
 'cloudinary' => [
@@ -68,20 +68,23 @@ Register cloudinary driver configuration in config/filesystems.php at disks sect
 ],
 ```
 
-The secure option is applied when generating url from storage, when `secure = true` will used `https` 
+The secure option is applied when generating url from storage, when `secure = true` will used `https`
 otherwise `secure = false` will used `http` as protocol.
 
 The resource_types option is applied when generating resource type & public id whenever we call storage method such as
-write, writeStream, url, has, etc. Registers the appropriate file extensions according to cloudinary resource type e.g: 
-png in image, mp4 in video, xlsx in raw, for audio files registers in video. `The default resource type is image`, 
-for more reference see https://cloudinary.com/documentation/image_upload_api_reference#upload_method.
+write, writeStream, url, has, etc. Registers the appropriate file extensions according to cloudinary resource type e.g:
+png in image, mp4 in video, xlsx in raw, for audio files registers in video. `The default resource type is image`,
+visit [image upload api reference](https://cloudinary.com/documentation/image_upload_api_reference#upload_method) for more information.
 
 ## Tips
 
-To use pre-defined filename as public ID when uploading to cloudinary, you need to tweak some configuration 
+To use pre-defined filename as public ID when uploading to cloudinary, you need to tweak some configuration
 in `Settings -> Upload -> Upload presets` as follows:
+
 - Click edit button on signed mode preset, initial preset is `ml_default` you can updates it.
+
 - Turn on `Use filename or externally defined public ID` to using the pre-defined filename instead of random characters.
+
 - Turn off `Unique filename` to prevent cloudinary from adding random characters at the end of filename.
 - Click `Save` and you're good to go.
 
