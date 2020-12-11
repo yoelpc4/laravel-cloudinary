@@ -4,6 +4,10 @@ cache:
 
 language: php
 
+env:
+  global:
+    - XDEBUG_MODE=coverage
+
 matrix:
   include:
     - php: 7.3
