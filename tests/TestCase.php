@@ -29,8 +29,6 @@ abstract class TestCase extends OrchestraTestCase
                 LoadEnvironmentVariables::class,
             ]);
 
-        $app['config']->set('filesystems.cloud', env('FILESYSTEM_CLOUD'));
-
         $app['config']->set('filesystems.disks.cloudinary', [
             'driver'         => 'cloudinary',
             'api_key'        => env('CLOUDINARY_API_KEY'),

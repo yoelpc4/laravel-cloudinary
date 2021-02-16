@@ -7,7 +7,6 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Testing\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Yoelpc4\LaravelCloudinary\Adapters\CloudinaryAdapter;
 use Yoelpc4\LaravelCloudinary\Tests\Mocks\Mockable;
 
 abstract class FileTestCase extends TestCase
@@ -52,37 +51,24 @@ abstract class FileTestCase extends TestCase
      */
     abstract protected function directory();
 
-    /**
-     */
-    public function testCloudAdapter()
+    /** @test */
+    public function testItHasRootPath()
     {
-        $this->assertInstanceOf(CloudinaryAdapter::class, Storage::cloud()->getAdapter());
+        $this->assertIsString(Storage::path('/'));
     }
 
-    /**
-     */
-    public function testPath()
-    {
-        $this->assertIsString(Storage::cloud()->path('/'));
-    }
-
-    /**
-     * @throws FileNotFoundException
-     */
-    public function testWrite()
+    /** @test */
+    public function testItCanWriteFile()
     {
         try {
-            $this->assertTrue(Storage::cloud()->write($this->randomPath($this->extension()), $this->file->get()));
+            $this->assertTrue(Storage::write($this->randomPath($this->extension()), $this->file->get()));
         } catch (FileNotFoundException $e) {
             throw $e;
         }
     }
 
-    /**
-     * @throws FileExistsException
-     * @throws FileNotFoundException
-     */
-    public function testWriteStream()
+    /** @test */
+    public function testItCanWriteStreamFile()
     {
         $isUpdated = false;
 
@@ -90,7 +76,7 @@ abstract class FileTestCase extends TestCase
 
         try {
             if (fwrite($tmpFile, $this->file->get())) {
-                $isUpdated = Storage::cloud()->writeStream($this->randomPath($this->extension()), $tmpFile);
+                $isUpdated = Storage::writeStream($this->randomPath($this->extension()), $tmpFile);
             }
         } catch (FileExistsException $e) {
             throw $e;
@@ -101,18 +87,16 @@ abstract class FileTestCase extends TestCase
         $this->assertTrue($isUpdated);
     }
 
-    /**
-     * @throws FileNotFoundException
-     */
-    public function testUpdate()
+    /** @test */
+    public function testItCanUpdateFile()
     {
         $isUpdated = false;
 
         $path = $this->randomPath($this->extension());
 
         try {
-            if (Storage::cloud()->write($path, $this->file->get())) {
-                $isUpdated = Storage::cloud()->update($path, $this->file->get());
+            if (Storage::write($path, $this->file->get())) {
+                $isUpdated = Storage::update($path, $this->file->get());
             }
         } catch (FileNotFoundException $e) {
             throw $e;
@@ -121,11 +105,8 @@ abstract class FileTestCase extends TestCase
         $this->assertTrue($isUpdated);
     }
 
-    /**
-     * @throws FileExistsException
-     * @throws FileNotFoundException
-     */
-    public function testUpdateStream()
+    /** @test */
+    public function testItCanUpdateStreamFile()
     {
         $isUpdated = false;
 
@@ -135,8 +116,8 @@ abstract class FileTestCase extends TestCase
 
         try {
             if (fwrite($tmpFile, $this->file->get())) {
-                if (Storage::cloud()->writeStream($path, $tmpFile)) {
-                    $isUpdated = Storage::cloud()->updateStream($path, $tmpFile);
+                if (Storage::writeStream($path, $tmpFile)) {
+                    $isUpdated = Storage::updateStream($path, $tmpFile);
                 }
             }
         } catch (FileExistsException $e) {
@@ -148,55 +129,47 @@ abstract class FileTestCase extends TestCase
         $this->assertTrue($isUpdated);
     }
 
-    /**
-     */
-    public function testRename()
+    /** @test */
+    public function testItCanRenameFile()
     {
-        $this->assertTrue(Storage::cloud()->rename($this->storeFile(), Str::random().'.'.$this->extension()));
+        $this->assertTrue(Storage::rename($this->storeFile(), Str::random().'.'.$this->extension()));
     }
 
-    /**
-     */
-    public function testCopy()
+    /** @test */
+    public function testItCanCopyFIle()
     {
-        $this->assertTrue(Storage::cloud()->copy($this->storeFile(), Str::random().'.'.$this->extension()));
+        $this->assertTrue(Storage::copy($this->storeFile(), Str::random().'.'.$this->extension()));
     }
 
-    /**
-     */
-    public function testDelete()
+    /** @test */
+    public function testItCanDeleteFile()
     {
-        $this->assertTrue(Storage::cloud()->delete($this->storeFile()));
+        $this->assertTrue(Storage::delete($this->storeFile()));
     }
 
-    /**
-     */
-    public function testCreateDir()
+    /** @test */
+    public function testItCanCreateDir()
     {
-        $this->assertTrue(Storage::cloud()->createDir($this->randomPath()));
+        $this->assertTrue(Storage::createDir($this->randomPath()));
     }
 
-    /**
-     */
-    public function testHas()
+    /** @test */
+    public function testItHasFile()
     {
-        $this->assertTrue(Storage::cloud()->has($this->storeFile()));
+        $this->assertTrue(Storage::has($this->storeFile()));
     }
 
-    /**
-     */
-    public function testRead()
+    /** @test */
+    public function testItCanReadFile()
     {
-        $this->assertIsString(Storage::cloud()->read($this->storeFile()));
+        $this->assertIsString(Storage::read($this->storeFile()));
     }
 
-    /**
-     * @throws FileNotFoundException
-     */
-    public function testReadStream()
+    /** @test */
+    public function testItCanReadStreamFile()
     {
         try {
-            Storage::fake()->put('/fake.png', Storage::cloud()->readStream($this->storeFile()));
+            Storage::fake()->put('/fake.png', Storage::readStream($this->storeFile()));
         } catch (FileNotFoundException $e) {
             throw $e;
         }
@@ -204,50 +177,44 @@ abstract class FileTestCase extends TestCase
         Storage::assertExists('/fake.png');
     }
 
-    /**
-     */
-    public function testListContents()
+    /** @test */
+    public function testItCanListContentsFile()
     {
         $path = $this->randomPath();
 
         $this->storeFile();
 
-        $this->assertIsArray(Storage::cloud()->listContents($path));
+        $this->assertIsArray(Storage::listContents($path));
     }
 
-    /**
-     */
-    public function testGetMetadata()
+    /** @test */
+    public function testItCanGetMetadataFile()
     {
-        $this->assertIsArray(Storage::cloud()->getMetadata($this->storeFile()));
+        $this->assertIsArray(Storage::getMetadata($this->storeFile()));
     }
 
-    /**
-     */
-    public function testGetSize()
+    /** @test */
+    public function testItCanGetSizeFile()
     {
-        $this->assertIsInt(Storage::cloud()->getSize($this->storeFile()));
+        $this->assertIsInt(Storage::getSize($this->storeFile()));
     }
 
-    /**
-     */
-    public function testGetMimetype()
+    /** @test */
+    public function testItCanGetMimetypeFile()
     {
-        $this->assertIsString(Storage::cloud()->getMimetype($this->storeFile()));
+        $this->assertIsString(Storage::getMimetype($this->storeFile()));
     }
 
-    /**
-     */
-    public function testGetTimestamp()
+    /** @test */
+    public function testItCanGetTimestampFile()
     {
-        $this->assertIsInt(Storage::cloud()->getTimestamp($this->storeFile()));
+        $this->assertIsInt(Storage::getTimestamp($this->storeFile()));
     }
 
-    /**
-     */
-    public function testUrl()
+    /** @test */
+    public function testItCanGetFileUrl()
     {
-        $this->assertStringStartsWith('http', Storage::cloud()->url($this->storeFile()));
+        $this->assertStringStartsWith('http', Storage::url($this->storeFile()));
     }
 
     /**
@@ -257,7 +224,7 @@ abstract class FileTestCase extends TestCase
      */
     protected function storeFile()
     {
-        return $this->file->store("test/{$this->directory()}", config('filesystems.cloud'));
+        return $this->file->store("test/{$this->directory()}", config('filesystems.default'));
     }
 
     /**
