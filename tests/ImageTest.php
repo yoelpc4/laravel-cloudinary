@@ -2,16 +2,20 @@
 
 namespace Yoelpc4\LaravelCloudinary\Tests;
 
-use Yoelpc4\LaravelCloudinary\Tests\Mocks\ImageMock;
+use Illuminate\Http\UploadedFile;
 
-class ImageTest extends FileTestCase
+class ImageTest extends TestCase
 {
     /**
      * @inheritDoc
      */
-    protected function mockFile()
+    protected function setUp(): void
     {
-        return new ImageMock;
+        parent::setUp();
+
+        $name = $this->getRandomPath($this->extension());
+
+        $this->file = UploadedFile::fake()->image($name, 1, 1)->size(1);
     }
 
     /**

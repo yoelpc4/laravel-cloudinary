@@ -6,7 +6,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use League\Flysystem\Filesystem;
-use Yoelpc4\LaravelCloudinary\Adapters\CloudinaryAdapter;
 
 class CloudinaryServiceProvider extends ServiceProvider
 {

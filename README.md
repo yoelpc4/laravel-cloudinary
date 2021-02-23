@@ -7,7 +7,7 @@
 [![Software License][ico-license]](LICENSE.md)
 [![Contributor Covenant][ico-code-of-conduct]](CODE_OF_CONDUCT.md)
 
-_Laravel Cloudinary filesystem cloud driver._
+_Laravel Cloudinary filesystem driver._
 
 ## Requirement
 
@@ -81,7 +81,7 @@ visit [image upload api reference](https://cloudinary.com/documentation/image_up
 To use pre-defined filename as public ID when uploading to cloudinary, you need to tweak some configuration
 in `Settings -> Upload -> Upload presets` as follows:
 
-- Click edit button on signed mode preset, initial preset is `ml_default` you can updates it.
+- Click edit button on signed mode preset, initial preset is `ml_default` you can update it.
 
 - Turn on `Use filename or externally defined public ID` to using the pre-defined filename instead of random characters.
 
