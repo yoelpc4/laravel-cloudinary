@@ -28,12 +28,13 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * CloudinaryAdapter constructor.
      *
      * @param  array  $options
+     * @param  Api  $api
      */
-    public function __construct(array $options)
+    public function __construct(array $options, Api $api)
     {
         Cloudinary::config($options);
 
-        $this->api = new Api;
+        $this->api = $api;
     }
 
     /**
