@@ -10,12 +10,12 @@ env:
 
 matrix:
   include:
+    - php: 8.0
+      env: LARAVEL='9.*' 'TESTBENCH='7.*' PHPUNIT='9.*'
     - php: 7.3
       env: LARAVEL='8.*' 'TESTBENCH='6.*' PHPUNIT='9.*'
     - php: 7.2
       env: LARAVEL='7.*' 'TESTBENCH='5.*' PHPUNIT='8.4.*'
-    - php: 7.2
-      env: LARAVEL='6.*' 'TESTBENCH='4.*' PHPUNIT='8.3.*'
   fast_finish: true
 
 before_script:
