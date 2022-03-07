@@ -11,32 +11,27 @@ jobs:
       fail-fast: false
       matrix:
         php: [ 8.1, 8.0, 7.4, 7.3, 7.2 ]
-        laravel: [ 9.*, 8.*, 7.* ]
+        laravel: [ 8.*, 7.*, 6.* ]
         include:
-          - laravel: 9.*
-            testbench: 7.*
-            phpunit: 9.*
-            flysystem: 3.*
           - laravel: 8.*
             testbench: 6.*
             phpunit: 9.*
-            flysystem: 1.*
           - laravel: 7.*
             testbench: 5.*
             phpunit: 8.4.*
-            flysystem: 1.*
+          - laravel: 6.*
+            testbench: 4.*
+            phpunit: 8.3.*
         exclude:
-          - laravel: 9.*
-            php: 7.4
-          - laravel: 9.*
-            php: 7.3
-          - laravel: 9.*
-            php: 7.2
           - laravel: 8.*
             php: 7.2
           - laravel: 7.*
             php: 8.1
           - laravel: 7.*
+            php: 8.0
+          - laravel: 6.*
+            php: 8.1
+          - laravel: 6.*
             php: 8.0
 
     name: PHP v${{ matrix.php }} - Laravel v${{ matrix.laravel }}
@@ -53,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer self-update
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" "league/flysystem:${{ matrix.flysystem }}" --no-interaction --no-update
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
           composer install --prefer-dist --no-interaction --no-suggest
       - name: Execute tests
         run: vendor/bin/phpunit
@@ -72,5 +67,4 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v2
         with:
-          files: ./coverage.xml
           fail_ci_if_error: true
