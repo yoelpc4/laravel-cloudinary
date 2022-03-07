@@ -1,0 +1,69 @@
+name: Tests
+
+on: [ push, pull_request ]
+
+jobs:
+  tests:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ 8.1, 8.0, 7.4, 7.3, 7.2 ]
+        laravel: [ 9.*, 8.*, 7.* ]
+        include:
+          - laravel: 9.*
+            testbench: 7.*
+            phpunit: 9.*
+          - laravel: 8.*
+            testbench: 6.*
+            phpunit: 9.*
+          - laravel: 7.*
+            testbench: 5.*
+            phpunit: 8.4.*
+        exclude:
+          - laravel: 9.*
+            php: 7.4
+          - laravel: 9.*
+            php: 7.3
+          - laravel: 9.*
+            php: 7.2
+          - laravel: 8.*
+            php: 7.2
+
+    name: PHP${{ matrix.php }} - Laravel${{ matrix.laravel }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, iconv
+          coverage: none
+      - name: Install dependencies
+        run: |
+          composer self-update
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer install --prefer-dist --no-interaction --no-suggest
+      - name: Execute tests
+        run: vendor/bin/phpunit
+        env:
+          APP_DEBUG: ${{ secrets.APP_DEBUG }}
+          APP_ENV: ${{ secrets.APP_ENV }}
+          APP_KEY: ${{ secrets.APP_KEY }}
+          APP_LOG_LEVEL: ${{ secrets.APP_LOG_LEVEL }}
+          APP_NAME: ${{ secrets.APP_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_SECURE: ${{ secrets.CLOUDINARY_SECURE }}
+          FILESYSTEM_CLOUD: ${{ secrets.FILESYSTEM_CLOUD }}
+          FILESYSTEM_DRIVER: ${{ secrets.FILESYSTEM_DRIVER }}
+      - name: Upload coverage
+        uses: codecov/codecov-action@v2
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true
