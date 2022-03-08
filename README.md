@@ -2,7 +2,6 @@
 
 [![Packagist][ico-packagist]][link-packagist]
 [![Downloads][ico-downloads]][link-packagist]
-[![Build][ico-build]][link-build]
 [![Tests][ico-tests]][link-tests]
 [![Code Coverage][ico-code-coverage]][link-code-coverage]
 [![Software License][ico-license]](LICENSE.md)
@@ -96,13 +95,11 @@ The Laravel Cloudinary is open-sourced software licensed under the [MIT license]
 
 [ico-packagist]: https://img.shields.io/packagist/v/yoelpc4/laravel-cloudinary.svg?style=flat-square
 [ico-downloads]: https://img.shields.io/packagist/dt/yoelpc4/laravel-cloudinary.svg?style=flat-square
-[ico-build]: https://travis-ci.com/yoelpc4/laravel-cloudinary.svg?branch=master&style=flat-square
 [ico-tests]: https://github.com/yoelpc4/laravel-cloudinary/actions/workflows/tests.yml/badge.svg?style=flat-square
 [ico-code-coverage]: https://codecov.io/gh/yoelpc4/laravel-cloudinary/branch/master/graph/badge.svg?style=flat-square
 [ico-license]: https://img.shields.io/packagist/l/yoelpc4/laravel-cloudinary.svg?style=flat-square
 [ico-code-of-conduct]: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
 
 [link-packagist]: https://packagist.org/packages/yoelpc4/laravel-cloudinary
-[link-build]: https://travis-ci.com/yoelpc4/laravel-cloudinary
 [link-tests]: https://github.com/yoelpc4/laravel-cloudinary/actions/workflows/tests.yml
 [link-code-coverage]: https://codecov.io/gh/yoelpc4/laravel-cloudinary
