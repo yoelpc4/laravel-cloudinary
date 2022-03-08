@@ -2,36 +2,34 @@
 
 namespace Yoelpc4\LaravelCloudinary\Tests;
 
+use Illuminate\Http\Testing\File;
 use Illuminate\Http\UploadedFile;
 
-class DocumentTest extends TestCase
+class DocumentTest extends FileTestCase
 {
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    protected function setUp(): void
+    protected function getFile(): File
     {
-        parent::setUp();
-
-        $name = $this->getRandomPath($this->extension());
-
-        $contents = file_get_contents($url = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf');
-
-        $this->file = UploadedFile::fake()->createWithContent($name, $contents);
+        return UploadedFile::fake()->createWithContent(
+            $this->getRandomPath($this->getExtension()),
+            file_get_contents('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf')
+        );
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    protected function extension()
+    protected function getExtension(): string
     {
         return 'pdf';
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    protected function directory()
+    protected function getDirectory(): string
     {
         return 'documents';
     }

@@ -28,9 +28,7 @@ class CloudinaryServiceProvider extends ServiceProvider
     public function boot()
     {
         Storage::extend('cloudinary', function (Application $app, array $config) {
-            $api = new Api;
-
-            return new Filesystem(new CloudinaryAdapter($config, $api));
+            return new Filesystem(new CloudinaryAdapter($config));
         });
     }
 }

@@ -2,34 +2,33 @@
 
 namespace Yoelpc4\LaravelCloudinary\Tests;
 
+use Illuminate\Http\Testing\File;
 use Illuminate\Http\UploadedFile;
 
-class ImageTest extends TestCase
+class ImageTest extends FileTestCase
 {
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    protected function setUp(): void
+    protected function getFile(): File
     {
-        parent::setUp();
-
-        $name = $this->getRandomPath($this->extension());
-
-        $this->file = UploadedFile::fake()->image($name, 1, 1)->size(1);
+        return UploadedFile::fake()
+            ->image($this->getRandomPath($this->getExtension()), 1, 1)
+            ->size(1);
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    protected function extension()
+    protected function getExtension(): string
     {
         return 'png';
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    protected function directory()
+    protected function getDirectory(): string
     {
         return 'images';
     }

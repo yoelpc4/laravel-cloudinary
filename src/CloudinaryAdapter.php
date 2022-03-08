@@ -2,11 +2,12 @@
 
 namespace Yoelpc4\LaravelCloudinary;
 
-use Cloudinary;
-use Cloudinary\Api;
-use Cloudinary\Api\BadRequest;
-use Cloudinary\Api\GeneralError;
-use Cloudinary\Uploader;
+use Cloudinary\Api\Admin\AdminApi;
+use Cloudinary\Api\ApiResponse;
+use Cloudinary\Api\Exception\ApiError;
+use Cloudinary\Api\Upload\UploadApi;
+use Cloudinary\Asset\Media;
+use Cloudinary\Configuration\Configuration;
 use Exception;
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
@@ -18,27 +19,39 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     use NotSupportingVisibilityTrait;
 
     /**
-     * Cloudinary api
+     * Cloudinary admin api
      *
-     * @var Api
+     * @var AdminApi
      */
-    protected $api;
+    protected $adminApi;
 
     /**
-     * CloudinaryAdapter constructor.
+     * Cloudinary upload api
      *
-     * @param  array  $options
-     * @param  Api  $api
+     * @var UploadApi
      */
-    public function __construct(array $options, Api $api)
-    {
-        Cloudinary::config($options);
+    protected $uploadApi;
 
-        $this->api = $api;
+    public function __construct(array $options)
+    {
+        Configuration::instance([
+            'cloud' => [
+                'cloud_name' => $options['cloud_name'],
+                'api_key'    => $options['api_key'],
+                'api_secret' => $options['api_secret'],
+            ],
+            'url'   => [
+                'secure' => $options['secure'],
+            ],
+        ]);
+
+        $this->adminApi = new AdminApi;
+
+        $this->uploadApi = new UploadApi;
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function write($path, $contents, Config $config)
     {
@@ -52,24 +65,26 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function writeStream($path, $resource, Config $config)
     {
-        $metadata = stream_get_meta_data($resource);
+        try {
+            $metadata = stream_get_meta_data($resource);
 
-        $options = [
-            'public_id'       => $this->getPublicId($path),
-            'use_filename'    => true,
-            'unique_filename' => false,
-            'resource_type'   => $this->getResourceType($path),
-        ];
-
-        return Uploader::upload($metadata['uri'], $options);
+            return $this->uploadApi->upload($metadata['uri'], [
+                'public_id'       => $this->getPublicId($path),
+                'use_filename'    => true,
+                'unique_filename' => false,
+                'resource_type'   => $this->getResourceType($path),
+            ]);
+        } catch (ApiError $e) {
+            return false;
+        }
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function update($path, $contents, Config $config)
     {
@@ -77,7 +92,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function updateStream($path, $resource, Config $config)
     {
@@ -85,87 +100,51 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    public function rename($path, $newpath)
+    public function rename($path, $newpath): bool
     {
-        $fromPublicId = $this->getPublicId($path);
-
         $toPublicId = $this->getPublicId($newpath);
 
-        $options = [
+        $response = $this->uploadApi->rename($this->getPublicId($path), $toPublicId, [
             'resource_type' => $this->getResourceType($newpath),
-        ];
+        ]);
 
-        $result = Uploader::rename($fromPublicId, $toPublicId, $options);
-
-        return is_array($result) ? $result['public_id'] === $toPublicId : false;
+        return $response->offsetGet('public_id') === $toPublicId;
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    public function copy($path, $newpath)
+    public function copy($path, $newpath): bool
     {
-        $url = $this->getUrl($path);
+        try {
+            $response = $this->uploadApi->upload($this->getUrl($path), [
+                'public_id'     => $this->getPublicId($newpath),
+                'resource_type' => $this->getResourceType($newpath),
+            ]);
 
-        $options = [
-            'public_id'     => $this->getPublicId($newpath),
-            'resource_type' => $this->getResourceType($newpath),
-        ];
-
-        $result = Uploader::upload($url, $options);
-
-        return is_array($result) ? $result['public_id'] === $this->getPublicId($newpath) : false;
+            return $response->offsetGet('public_id') === $this->getPublicId($newpath);
+        } catch (ApiError $e) {
+            return false;
+        }
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    public function delete($path)
+    public function delete($path): bool
     {
-        $options = [
+        $response = $this->uploadApi->destroy($this->getPublicId($path), [
             'resource_type' => $this->getResourceType($path),
             'invalidate'    => true,
-        ];
+        ]);
 
-        $result = Uploader::destroy($this->getPublicId($path), $options);
-
-        return is_array($result) ? $result['result'] === 'ok' : false;
+        return $response->offsetGet('result') === 'ok';
     }
 
     /**
-     * @inheritDoc
-     */
-    public function createDir($dirname, Config $config)
-    {
-        try {
-            return $this->api->create_folder($dirname);
-        } catch (BadRequest $e) {
-            return false;
-        } catch (GeneralError $e) {
-            return false;
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function deleteDir($dirname)
-    {
-        try {
-            $this->api->delete_folder($dirname);
-        } catch (BadRequest $e) {
-            return false;
-        } catch (GeneralError $e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function has($path)
     {
@@ -174,16 +153,16 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
         ];
 
         try {
-            $this->api->resource($this->getPublicId($path), $options);
+            $this->adminApi->asset($this->getPublicId($path), $options);
+
+            return true;
         } catch (Exception $e) {
             return false;
         }
-
-        return true;
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function read($path)
     {
@@ -193,7 +172,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function readStream($path)
     {
@@ -207,26 +186,21 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritDoc
-     * @throws GeneralError
+     * @inheritdoc
      */
-    public function listContents($directory = '', $recursive = false)
+    public function listContents($directory = '', $recursive = false): array
     {
         $resources = [];
 
         $response = null;
 
         do {
-            try {
-                $response = (array) $this->api->resources([
-                    'type'        => 'upload',
-                    'prefix'      => $directory,
-                    'max_results' => 500,
-                    'next_cursor' => isset($response['next_cursor']) ? $response['next_cursor'] : null,
-                ]);
-            } catch (GeneralError $e) {
-                throw $e;
-            }
+            $response = (array) $this->adminApi->assets([
+                'type'        => 'upload',
+                'prefix'      => $directory,
+                'max_results' => 500,
+                'next_cursor' => $response['next_cursor'] ?? null,
+            ]);
 
             $resources = array_merge($resources, $response['resources']);
         } while (array_key_exists('next_cursor', $response));
@@ -239,51 +213,35 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function getMetadata($path)
     {
-        try {
-            return $this->prepareResourceMetadata($this->getResource($path));
-        } catch (GeneralError $e) {
-            return false;
-        }
+        return $this->prepareResourceMetadata($this->getResource($path));
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function getSize($path)
     {
-        try {
-            return $this->prepareSize($this->getResource($path));
-        } catch (GeneralError $e) {
-            return false;
-        }
+        return $this->prepareSize($this->getResource($path));
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function getMimetype($path)
     {
-        try {
-            return $this->prepareMimetype($this->getResource($path));
-        } catch (GeneralError $e) {
-            return false;
-        }
+        return $this->prepareMimetype($this->getResource($path));
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
     public function getTimestamp($path)
     {
-        try {
-            return $this->prepareTimestamp($this->getResource($path));
-        } catch (GeneralError $e) {
-            return false;
-        }
+        return $this->prepareTimestamp($this->getResource($path));
     }
 
     /**
@@ -291,9 +249,8 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      *
      * @param  string  $path
      * @return array
-     * @throws GeneralError
      */
-    public function getResource($path)
+    public function getResource(string $path): array
     {
         $publicId = $this->getPublicId($path);
 
@@ -301,11 +258,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
             'resource_type' => $this->getResourceType($path),
         ];
 
-        try {
-            return (array) $this->api->resource($publicId, $options);
-        } catch (GeneralError $e) {
-            throw $e;
-        }
+        return (array) $this->adminApi->asset($publicId, $options);
     }
 
     /**
@@ -314,11 +267,9 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  string|array  $path
      * @return string
      */
-    public function getUrl($path)
+    public function getUrl($path): string
     {
-        $options = [
-            'secure' => config('filesystems.disks.cloudinary.secure'),
-        ];
+        $options = [];
 
         if (is_array($path)) {
             foreach ($path as $key => $value) {
@@ -332,7 +283,33 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
 
         $options['resource_type'] = $this->getResourceType($path);
 
-        return cloudinary_url($path, $options);
+        return Media::fromParams($path, $options)->toUrl();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function createDir($dirname, Config $config)
+    {
+        try {
+            return (array) $this->adminApi->createFolder($dirname);
+        } catch (ApiError $e) {
+            return false;
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function deleteDir($dirname): bool
+    {
+        try {
+            $this->adminApi->deleteFolder($dirname);
+
+            return true;
+        } catch (ApiError $e) {
+            return false;
+        }
     }
 
     /**
@@ -341,19 +318,18 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  array  $resource
      * @return array
      */
-    protected function prepareResourceMetadata(array $resource)
+    protected function prepareResourceMetadata(array $resource): array
     {
         $resource['type'] = 'file';
 
         $resource['path'] = $resource['public_id'];
 
-        $resource = array_merge($resource, $this->prepareSize($resource));
-
-        $resource = array_merge($resource, $this->prepareTimestamp($resource));
-
-        $resource = array_merge($resource, $this->prepareMimetype($resource));
-
-        return $resource;
+        return array_merge(
+            $resource,
+            $this->prepareSize($resource),
+            $this->prepareTimestamp($resource),
+            $this->prepareMimetype($resource)
+        );
     }
 
     /**
@@ -362,7 +338,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  array  $resource
      * @return array
      */
-    protected function prepareMimetype(array $resource)
+    protected function prepareMimetype(array $resource): array
     {
         $format = isset($resource['format']) ? "/{$resource['format']}" : '';
 
@@ -377,7 +353,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  array  $resource
      * @return array
      */
-    protected function prepareTimestamp(array $resource)
+    protected function prepareTimestamp(array $resource): array
     {
         return [
             'timestamp' => strtotime($resource['created_at']),
@@ -390,7 +366,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  array  $resource
      * @return array
      */
-    protected function prepareSize(array $resource)
+    protected function prepareSize(array $resource): array
     {
         return [
             'size' => $resource['bytes'],
@@ -404,7 +380,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @return string
      * @see https://cloudinary.com/documentation/image_upload_api_reference#upload_method
      */
-    protected function getResourceType(string $path)
+    protected function getResourceType(string $path): string
     {
         $extension = pathinfo($path, PATHINFO_EXTENSION);
 
@@ -429,7 +405,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  string  $path
      * @return string
      */
-    protected function getPublicId(string $path)
+    protected function getPublicId(string $path): string
     {
         $basename = pathinfo($path, PATHINFO_BASENAME);
 
