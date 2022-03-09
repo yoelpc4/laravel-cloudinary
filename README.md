@@ -14,6 +14,15 @@ _Laravel Cloudinary filesystem driver._
 - [Laravel](https://laravel.com)
 - [Cloudinary Account Details](https://cloudinary.com)
 
+## Laravel Version Compatibilities
+
+| Laravel | Package |
+|---------|---------|
+| 9.x.x   | 3.x     |
+| 8.x.x   | 2.x     |
+| 7.x.x   | 2.x     |
+| 6.x.x   | 2.x     |
+
 ## Install
 
 Require this package with composer via command:
