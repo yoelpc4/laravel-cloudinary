@@ -3,34 +3,31 @@
 namespace Yoelpc4\LaravelCloudinary;
 
 use Cloudinary\Api\Admin\AdminApi;
-use Cloudinary\Api\ApiResponse;
 use Cloudinary\Api\Exception\ApiError;
+use Cloudinary\Api\Exception\NotFound;
 use Cloudinary\Api\Upload\UploadApi;
 use Cloudinary\Asset\Media;
 use Cloudinary\Configuration\Configuration;
-use Exception;
-use League\Flysystem\Adapter\AbstractAdapter;
-use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
-use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
+use League\Flysystem\FileAttributes;
+use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\UnableToCheckExistence;
+use League\Flysystem\UnableToCopyFile;
+use League\Flysystem\UnableToCreateDirectory;
+use League\Flysystem\UnableToDeleteDirectory;
+use League\Flysystem\UnableToDeleteFile;
+use League\Flysystem\UnableToMoveFile;
+use League\Flysystem\UnableToReadFile;
+use League\Flysystem\UnableToRetrieveMetadata;
+use League\Flysystem\UnableToSetVisibility;
+use League\Flysystem\UnableToWriteFile;
+use Throwable;
 
-class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
+class CloudinaryAdapter implements FilesystemAdapter
 {
-    use NotSupportingVisibilityTrait;
+    protected AdminApi $adminApi;
 
-    /**
-     * Cloudinary admin api
-     *
-     * @var AdminApi
-     */
-    protected $adminApi;
-
-    /**
-     * Cloudinary upload api
-     *
-     * @var UploadApi
-     */
-    protected $uploadApi;
+    protected UploadApi $uploadApi;
 
     public function __construct(array $options)
     {
@@ -53,212 +50,243 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     /**
      * @inheritdoc
      */
-    public function write($path, $contents, Config $config)
+    public function fileExists(string $path): bool
     {
-        $tmpFile = tmpfile();
+        try {
+            $this->getAsset($path);
 
-        if (fwrite($tmpFile, $contents)) {
-            return $this->writeStream($path, $tmpFile, $config);
+            return true;
+        } catch (Throwable $e) {
+            if ($e instanceof NotFound) {
+                return false;
+            }
+
+            throw UnableToCheckExistence::forLocation($path, $e);
         }
-
-        return false;
     }
 
     /**
      * @inheritdoc
      */
-    public function writeStream($path, $resource, Config $config)
+    public function directoryExists(string $path): bool
     {
         try {
-            $metadata = stream_get_meta_data($resource);
+            $this->adminApi->subFolders($path);
 
-            return $this->uploadApi->upload($metadata['uri'], [
+            return true;
+        } catch (ApiError $e) {
+            if ($e instanceof NotFound) {
+                return false;
+            }
+
+            throw UnableToCheckExistence::forLocation($path, $e);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function write(string $path, string $contents, Config $config): void
+    {
+        $tmpFile = tmpfile();
+
+        if (! fwrite($tmpFile, $contents)) {
+            throw UnableToWriteFile::atLocation($path);
+        }
+
+        $this->writeStream($path, $tmpFile, $config);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function writeStream(string $path, $contents, Config $config): void
+    {
+        try {
+            $metadata = stream_get_meta_data($contents);
+
+            $this->uploadApi->upload($metadata['uri'], [
                 'public_id'       => $this->getPublicId($path),
                 'use_filename'    => true,
                 'unique_filename' => false,
                 'resource_type'   => $this->getResourceType($path),
             ]);
         } catch (ApiError $e) {
-            return false;
+            throw UnableToWriteFile::atLocation($path, $e->getMessage(), $e);
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function update($path, $contents, Config $config)
-    {
-        return $this->write($path, $contents, $config);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function updateStream($path, $resource, Config $config)
-    {
-        return $this->writeStream($path, $resource, $config);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function rename($path, $newpath): bool
-    {
-        $toPublicId = $this->getPublicId($newpath);
-
-        $response = $this->uploadApi->rename($this->getPublicId($path), $toPublicId, [
-            'resource_type' => $this->getResourceType($newpath),
-        ]);
-
-        return $response->offsetGet('public_id') === $toPublicId;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function copy($path, $newpath): bool
+    public function read(string $path): string
     {
         try {
-            $response = $this->uploadApi->upload($this->getUrl($path), [
-                'public_id'     => $this->getPublicId($newpath),
-                'resource_type' => $this->getResourceType($newpath),
+            return file_get_contents($this->getUrl($path));
+        } catch (Throwable $e) {
+            throw UnableToReadFile::fromLocation($path, $e->getMessage(), $e);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function readStream(string $path)
+    {
+        try {
+            return fopen($this->getUrl($path), 'r');
+        } catch (Throwable $e) {
+            throw UnableToReadFile::fromLocation($path, $e->getMessage(), $e);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function delete(string $path): void
+    {
+        try {
+            $this->uploadApi->destroy($this->getPublicId($path), [
+                'resource_type' => $this->getResourceType($path),
+                'invalidate'    => true,
             ]);
+        } catch (Throwable $e) {
+            throw UnableToDeleteFile::atLocation($path, $e->getMessage(), $e);
+        }
+    }
 
-            return $response->offsetGet('public_id') === $this->getPublicId($newpath);
+    /**
+     * @inheritdoc
+     */
+    public function deleteDirectory(string $path): void
+    {
+        try {
+            $this->adminApi->deleteFolder($path);
         } catch (ApiError $e) {
-            return false;
+            throw UnableToDeleteDirectory::atLocation($path, $e->getMessage(), $e);
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function delete($path): bool
-    {
-        $response = $this->uploadApi->destroy($this->getPublicId($path), [
-            'resource_type' => $this->getResourceType($path),
-            'invalidate'    => true,
-        ]);
-
-        return $response->offsetGet('result') === 'ok';
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function has($path)
-    {
-        $options = [
-            'resource_type' => $this->getResourceType($path),
-        ];
-
-        try {
-            $this->adminApi->asset($this->getPublicId($path), $options);
-
-            return true;
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function read($path)
-    {
-        $contents = file_get_contents($this->getUrl($path));
-
-        return compact('contents', 'path');
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function readStream($path)
+    public function createDirectory(string $path, Config $config): void
     {
         try {
-            $stream = fopen($this->getUrl($path), 'r');
-        } catch (Exception $e) {
-            return false;
+            $this->adminApi->createFolder($path);
+        } catch (ApiError $e) {
+            throw UnableToCreateDirectory::dueToFailure($path, $e);
         }
-
-        return compact('stream', 'path');
     }
 
     /**
      * @inheritdoc
      */
-    public function listContents($directory = '', $recursive = false): array
+    public function setVisibility(string $path, string $visibility): void
+    {
+        throw new UnableToSetVisibility('visibility is unsupported');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function visibility(string $path): FileAttributes
+    {
+        throw UnableToRetrieveMetadata::visibility($path, 'visibility is unsupported');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function mimeType(string $path): FileAttributes
+    {
+        try {
+            return $this->getFileAttributes($this->getAsset($path));
+        } catch (Throwable $e) {
+            throw UnableToRetrieveMetadata::mimeType($path, $e->getMessage(), $e);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function lastModified(string $path): FileAttributes
+    {
+        try {
+            return $this->getFileAttributes($this->getAsset($path));
+        } catch (Throwable $e) {
+            throw UnableToRetrieveMetadata::lastModified($path, $e->getMessage(), $e);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function fileSize(string $path): FileAttributes
+    {
+        try {
+            return $this->getFileAttributes($this->getAsset($path));
+        } catch (Throwable $e) {
+            throw UnableToRetrieveMetadata::fileSize($path, $e->getMessage(), $e);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function listContents(string $path, bool $deep): iterable
     {
         $resources = [];
 
         $response = null;
 
-        do {
-            $response = (array) $this->adminApi->assets([
-                'type'        => 'upload',
-                'prefix'      => $directory,
-                'max_results' => 500,
-                'next_cursor' => $response['next_cursor'] ?? null,
-            ]);
+        try {
+            do {
+                $response = (array) $this->adminApi->assets([
+                    'type'        => 'upload',
+                    'prefix'      => $path,
+                    'max_results' => 500,
+                    'next_cursor' => $response['next_cursor'] ?? null,
+                ]);
 
-            $resources = array_merge($resources, $response['resources']);
-        } while (array_key_exists('next_cursor', $response));
+                $resources = array_merge($resources, $response['resources']);
+            } while (array_key_exists('next_cursor', $response));
 
-        foreach ($resources as $index => $resource) {
-            $resources[$index] = $this->prepareResourceMetadata($resource);
+            return array_map(fn(array $resource) => $this->getFileAttributes($resource), $resources);
+        } catch (Throwable $e) {
+            throw UnableToListContents::fromLocation($path, $e->getMessage(), $e);
         }
-
-        return $resources;
     }
 
     /**
      * @inheritdoc
      */
-    public function getMetadata($path)
+    public function move(string $source, string $destination, Config $config): void
     {
-        return $this->prepareResourceMetadata($this->getResource($path));
+        $toPublicId = $this->getPublicId($destination);
+
+        try {
+            $this->uploadApi->rename($this->getPublicId($source), $toPublicId, [
+                'resource_type' => $this->getResourceType($destination),
+            ]);
+        } catch (Throwable $e) {
+            throw UnableToMoveFile::fromLocationTo($source, $destination, $e);
+        }
     }
 
     /**
      * @inheritdoc
      */
-    public function getSize($path)
+    public function copy(string $source, string $destination, Config $config): void
     {
-        return $this->prepareSize($this->getResource($path));
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getMimetype($path)
-    {
-        return $this->prepareMimetype($this->getResource($path));
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getTimestamp($path)
-    {
-        return $this->prepareTimestamp($this->getResource($path));
-    }
-
-    /**
-     * Get the resource of a file
-     *
-     * @param  string  $path
-     * @return array
-     */
-    public function getResource(string $path): array
-    {
-        $publicId = $this->getPublicId($path);
-
-        $options = [
-            'resource_type' => $this->getResourceType($path),
-        ];
-
-        return (array) $this->adminApi->asset($publicId, $options);
+        try {
+            $this->uploadApi->upload($this->getUrl($source), [
+                'public_id'     => $this->getPublicId($destination),
+                'resource_type' => $this->getResourceType($destination),
+            ]);
+        } catch (ApiError $e) {
+            throw UnableToCopyFile::fromLocationTo($source, $destination, $e);
+        }
     }
 
     /**
@@ -267,7 +295,7 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      * @param  string|array  $path
      * @return string
      */
-    public function getUrl($path): string
+    public function getUrl(string|array $path): string
     {
         $options = [];
 
@@ -287,90 +315,38 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * @inheritdoc
-     */
-    public function createDir($dirname, Config $config)
-    {
-        try {
-            return (array) $this->adminApi->createFolder($dirname);
-        } catch (ApiError $e) {
-            return false;
-        }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function deleteDir($dirname): bool
-    {
-        try {
-            $this->adminApi->deleteFolder($dirname);
-
-            return true;
-        } catch (ApiError $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Prepare cloudinary resource metadata
+     * Get the cloudinary asset from the specified path
      *
-     * @param  array  $resource
+     * @param  string  $path
      * @return array
+     * @throws Throwable
      */
-    protected function prepareResourceMetadata(array $resource): array
+    protected function getAsset(string $path): array
     {
-        $resource['type'] = 'file';
+        return (array) $this->adminApi->asset($this->getPublicId($path), [
+            'resource_type' => $this->getResourceType($path),
+        ]);
+    }
 
-        $resource['path'] = $resource['public_id'];
+    /**
+     * Get cloudinary asset as file attributes
+     *
+     * @param  array  $asset
+     * @return FileAttributes
+     */
+    protected function getFileAttributes(array $asset): FileAttributes
+    {
+        $format = isset($asset['format']) ? "/{$asset['format']}" : '';
 
-        return array_merge(
-            $resource,
-            $this->prepareSize($resource),
-            $this->prepareTimestamp($resource),
-            $this->prepareMimetype($resource)
+        $mimeType = str_replace('jpg', 'jpeg', "{$asset['resource_type']}{$format}");
+
+        return new FileAttributes(
+            $asset['public_id'],
+            $asset['bytes'],
+            null,
+            strtotime($asset['created_at']),
+            $mimeType
         );
-    }
-
-    /**
-     * Prepare cloudinary resource mimetype
-     *
-     * @param  array  $resource
-     * @return array
-     */
-    protected function prepareMimetype(array $resource): array
-    {
-        $format = isset($resource['format']) ? "/{$resource['format']}" : '';
-
-        return [
-            'mimetype' => str_replace('jpg', 'jpeg', "{$resource['resource_type']}{$format}"),
-        ];
-    }
-
-    /**
-     * Prepare cloudinary resource timestamp
-     *
-     * @param  array  $resource
-     * @return array
-     */
-    protected function prepareTimestamp(array $resource): array
-    {
-        return [
-            'timestamp' => strtotime($resource['created_at']),
-        ];
-    }
-
-    /**
-     * Prepare cloudinary resource size
-     *
-     * @param  array  $resource
-     * @return array
-     */
-    protected function prepareSize(array $resource): array
-    {
-        return [
-            'size' => $resource['bytes'],
-        ];
     }
 
     /**

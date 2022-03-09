@@ -7,19 +7,26 @@ use Illuminate\Support\Str;
 
 class DirectoryTest extends TestCase
 {
-    /** @test */
-    public function testItCanCreateDir()
+    public function testItCanCreateDirectory()
     {
-        $this->assertTrue(Storage::createDir('test/' . Str::random()));
+        $this->assertTrue(Storage::makeDirectory('test/' . Str::random()));
     }
 
-    /** @test */
-    public function testItCanDeleteDir()
+    public function testIsDirectoryExists()
     {
         $path = 'test/' . Str::random();
 
-        Storage::createDir($path);
+        Storage::makeDirectory($path);
 
-        $this->assertTrue(Storage::deleteDir($path));
+        $this->assertTrue(Storage::directoryExists($path));
+    }
+
+    public function testItCanDeleteDirectory()
+    {
+        $path = 'test/' . Str::random();
+
+        Storage::makeDirectory($path);
+
+        $this->assertTrue(Storage::deleteDirectory($path));
     }
 }

@@ -3,6 +3,7 @@
 namespace Yoelpc4\LaravelCloudinary;
 
 use Cloudinary\Api;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
@@ -28,7 +29,9 @@ class CloudinaryServiceProvider extends ServiceProvider
     public function boot()
     {
         Storage::extend('cloudinary', function (Application $app, array $config) {
-            return new Filesystem(new CloudinaryAdapter($config));
+            $adapter = new CloudinaryAdapter($config);
+
+            return new FilesystemAdapter(new Filesystem($adapter, $config), $adapter, $config);
         });
     }
 }
