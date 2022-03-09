@@ -2,7 +2,6 @@
 
 namespace Yoelpc4\LaravelCloudinary;
 
-use Cloudinary\Api;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Storage;
