@@ -47,7 +47,6 @@ abstract class FileTestCase extends TestCase
     }
 
     /**
-     * @test
      * @throws FileNotFoundException
      */
     public function testItCanWriteFile()
@@ -60,7 +59,6 @@ abstract class FileTestCase extends TestCase
     }
 
     /**
-     * @test
      * @throws FileNotFoundException
      */
     public function testItCanWriteStreamFile()
@@ -79,7 +77,6 @@ abstract class FileTestCase extends TestCase
     }
 
     /**
-     * @test
      * @throws FileNotFoundException
      */
     public function testItCanUpdateFile()
@@ -98,7 +95,6 @@ abstract class FileTestCase extends TestCase
     }
 
     /**
-     * @test
      * @throws FileNotFoundException
      * @throws FileExistsException
      */
@@ -121,7 +117,6 @@ abstract class FileTestCase extends TestCase
         $this->assertTrue($isUpdated);
     }
 
-    /** @test */
     public function testItCanRenameFile()
     {
         $from = $this->storeFile();
@@ -131,7 +126,6 @@ abstract class FileTestCase extends TestCase
         $this->assertTrue(Storage::rename($from, $to));
     }
 
-    /** @test */
     public function testItCanCopyFile()
     {
         $from = $this->storeFile();
@@ -141,7 +135,6 @@ abstract class FileTestCase extends TestCase
         $this->assertTrue(Storage::copy($from, $to));
     }
 
-    /** @test */
     public function testItCanDeleteFile()
     {
         $path = $this->storeFile();
@@ -149,7 +142,6 @@ abstract class FileTestCase extends TestCase
         $this->assertTrue(Storage::delete($path));
     }
 
-    /** @test */
     public function testItHasFile()
     {
         $path = $this->storeFile();
@@ -157,7 +149,6 @@ abstract class FileTestCase extends TestCase
         $this->assertTrue(Storage::has($path));
     }
 
-    /** @test */
     public function testItCanReadFile()
     {
         $path = $this->storeFile();
@@ -165,21 +156,13 @@ abstract class FileTestCase extends TestCase
         $this->assertIsString(Storage::read($path));
     }
 
-    /** @test */
     public function testItCanReadStreamFile()
     {
         $path = $this->storeFile();
 
-        $contents = Storage::readStream($path);
-
-        $otherPath = $this->getRandomFilename();
-
-        Storage::fake()->put($otherPath, $contents);
-
-        Storage::assertExists($otherPath);
+        $this->assertIsResource(Storage::readStream($path));
     }
 
-    /** @test */
     public function testItCanListContentsFile()
     {
         $path = $this->getRandomPath();
@@ -189,7 +172,6 @@ abstract class FileTestCase extends TestCase
         $this->assertIsArray(Storage::listContents($path));
     }
 
-    /** @test */
     public function testItCanGetMetadataFile()
     {
         $path = $this->storeFile();
@@ -197,7 +179,6 @@ abstract class FileTestCase extends TestCase
         $this->assertIsArray(Storage::getMetadata($path));
     }
 
-    /** @test */
     public function testItCanGetSizeFile()
     {
         $path = $this->storeFile();
@@ -205,7 +186,6 @@ abstract class FileTestCase extends TestCase
         $this->assertIsInt(Storage::getSize($path));
     }
 
-    /** @test */
     public function testItCanGetMimetypeFile()
     {
         $path = $this->storeFile();
@@ -213,7 +193,6 @@ abstract class FileTestCase extends TestCase
         $this->assertIsString(Storage::getMimetype($path));
     }
 
-    /** @test */
     public function testItCanGetTimestampFile()
     {
         $path = $this->storeFile();
@@ -221,7 +200,6 @@ abstract class FileTestCase extends TestCase
         $this->assertIsInt(Storage::getTimestamp($path));
     }
 
-    /** @test */
     public function testItCanGetUrl()
     {
         $path = $this->storeFile();

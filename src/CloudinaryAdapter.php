@@ -3,7 +3,6 @@
 namespace Yoelpc4\LaravelCloudinary;
 
 use Cloudinary\Api\Admin\AdminApi;
-use Cloudinary\Api\ApiResponse;
 use Cloudinary\Api\Exception\ApiError;
 use Cloudinary\Api\Upload\UploadApi;
 use Cloudinary\Asset\Media;
@@ -13,6 +12,7 @@ use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
+use Throwable;
 
 class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
 {
@@ -106,11 +106,15 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     {
         $toPublicId = $this->getPublicId($newpath);
 
-        $response = $this->uploadApi->rename($this->getPublicId($path), $toPublicId, [
-            'resource_type' => $this->getResourceType($newpath),
-        ]);
+        try {
+            $response = (array) $this->uploadApi->rename($this->getPublicId($path), $toPublicId, [
+                'resource_type' => $this->getResourceType($newpath),
+            ]);
 
-        return $response->offsetGet('public_id') === $toPublicId;
+            return $response['public_id'] === $toPublicId;
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -119,12 +123,12 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     public function copy($path, $newpath): bool
     {
         try {
-            $response = $this->uploadApi->upload($this->getUrl($path), [
+            $response = (array) $this->uploadApi->upload($this->getUrl($path), [
                 'public_id'     => $this->getPublicId($newpath),
                 'resource_type' => $this->getResourceType($newpath),
             ]);
 
-            return $response->offsetGet('public_id') === $this->getPublicId($newpath);
+            return $response['public_id'] === $this->getPublicId($newpath);
         } catch (ApiError $e) {
             return false;
         }
@@ -135,12 +139,16 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function delete($path): bool
     {
-        $response = $this->uploadApi->destroy($this->getPublicId($path), [
-            'resource_type' => $this->getResourceType($path),
-            'invalidate'    => true,
-        ]);
+        try {
+            $response = (array) $this->uploadApi->destroy($this->getPublicId($path), [
+                'resource_type' => $this->getResourceType($path),
+                'invalidate'    => true,
+            ]);
 
-        return $response->offsetGet('result') === 'ok';
+            return $response['result'] === 'ok';
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -148,15 +156,11 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function has($path)
     {
-        $options = [
-            'resource_type' => $this->getResourceType($path),
-        ];
-
         try {
-            $this->adminApi->asset($this->getPublicId($path), $options);
+            $this->getAsset($path);
 
             return true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return false;
         }
     }
@@ -166,9 +170,13 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function read($path)
     {
-        $contents = file_get_contents($this->getUrl($path));
+        try {
+            $contents = file_get_contents($this->getUrl($path));
 
-        return compact('contents', 'path');
+            return compact('contents', 'path');
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -178,11 +186,11 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     {
         try {
             $stream = fopen($this->getUrl($path), 'r');
+
+            return compact('stream', 'path');
         } catch (Exception $e) {
             return false;
         }
-
-        return compact('stream', 'path');
     }
 
     /**
@@ -205,11 +213,9 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
             $resources = array_merge($resources, $response['resources']);
         } while (array_key_exists('next_cursor', $response));
 
-        foreach ($resources as $index => $resource) {
-            $resources[$index] = $this->prepareResourceMetadata($resource);
-        }
-
-        return $resources;
+        return array_map(function (array $asset) {
+            return $this->getFileMetadata($asset);
+        }, $resources);
     }
 
     /**
@@ -217,7 +223,11 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getMetadata($path)
     {
-        return $this->prepareResourceMetadata($this->getResource($path));
+        try {
+            return $this->getFileMetadata($this->getAsset($path));
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -225,7 +235,11 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getSize($path)
     {
-        return $this->prepareSize($this->getResource($path));
+        try {
+            return $this->getFileSize($this->getAsset($path));
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -233,7 +247,11 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getMimetype($path)
     {
-        return $this->prepareMimetype($this->getResource($path));
+        try {
+            return $this->getFileMimetype($this->getAsset($path));
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -241,49 +259,11 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function getTimestamp($path)
     {
-        return $this->prepareTimestamp($this->getResource($path));
-    }
-
-    /**
-     * Get the resource of a file
-     *
-     * @param  string  $path
-     * @return array
-     */
-    public function getResource(string $path): array
-    {
-        $publicId = $this->getPublicId($path);
-
-        $options = [
-            'resource_type' => $this->getResourceType($path),
-        ];
-
-        return (array) $this->adminApi->asset($publicId, $options);
-    }
-
-    /**
-     * Get the URL for the file at the given path.
-     *
-     * @param  string|array  $path
-     * @return string
-     */
-    public function getUrl($path): string
-    {
-        $options = [];
-
-        if (is_array($path)) {
-            foreach ($path as $key => $value) {
-                $options[$key] = $value;
-            }
-
-            unset($options['path']);
-
-            $path = $path['path'];
+        try {
+            return $this->getFileTimestamp($this->getAsset($path));
+        } catch (Throwable $e) {
+            return false;
         }
-
-        $options['resource_type'] = $this->getResourceType($path);
-
-        return Media::fromParams($path, $options)->toUrl();
     }
 
     /**
@@ -313,63 +293,102 @@ class CloudinaryAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * Prepare cloudinary resource metadata
+     * Get the URL for the file at the given path.
      *
-     * @param  array  $resource
+     * @param  string|array  $path
+     * @return string
+     */
+    public function getUrl($path): string
+    {
+        $options = [];
+
+        if (is_array($path)) {
+            foreach ($path as $key => $value) {
+                $options[$key] = $value;
+            }
+
+            unset($options['path']);
+
+            $path = $path['path'];
+        }
+
+        $options['resource_type'] = $this->getResourceType($path);
+
+        return Media::fromParams($path, $options)->toUrl();
+    }
+
+    /**
+     * Get the cloudinary asset from the specified path
+     *
+     * @param  string  $path
+     * @return array
+     * @throws Throwable
+     */
+    protected function getAsset(string $path): array
+    {
+        return (array) $this->adminApi->asset($this->getPublicId($path), [
+            'resource_type' => $this->getResourceType($path),
+        ]);
+    }
+
+    /**
+     * Get cloudinary asset as file metadata
+     *
+     * @param  array  $asset
      * @return array
      */
-    protected function prepareResourceMetadata(array $resource): array
+    protected function getFileMetadata(array $asset): array
     {
-        $resource['type'] = 'file';
+        $asset['type'] = 'file';
 
-        $resource['path'] = $resource['public_id'];
+        $asset['path'] = $asset['public_id'];
 
         return array_merge(
-            $resource,
-            $this->prepareSize($resource),
-            $this->prepareTimestamp($resource),
-            $this->prepareMimetype($resource)
+            $asset,
+            $this->getFileSize($asset),
+            $this->getFileTimestamp($asset),
+            $this->getFileMimetype($asset)
         );
     }
 
     /**
-     * Prepare cloudinary resource mimetype
+     * Get cloudinary asset as file mimetype
      *
-     * @param  array  $resource
+     * @param  array  $asset
      * @return array
      */
-    protected function prepareMimetype(array $resource): array
+    protected function getFileMimetype(array $asset): array
     {
-        $format = isset($resource['format']) ? "/{$resource['format']}" : '';
+        $format = isset($asset['format']) ? "/{$asset['format']}" : '';
 
         return [
-            'mimetype' => str_replace('jpg', 'jpeg', "{$resource['resource_type']}{$format}"),
+            'mimetype' => str_replace('jpg', 'jpeg', "{$asset['resource_type']}{$format}"),
         ];
     }
 
     /**
-     * Prepare cloudinary resource timestamp
+     * Get cloudinary asset as file timestamp
      *
-     * @param  array  $resource
+     * @param  array  $asset
      * @return array
      */
-    protected function prepareTimestamp(array $resource): array
+    protected function getFileTimestamp(array $asset): array
     {
         return [
-            'timestamp' => strtotime($resource['created_at']),
+            'timestamp' => strtotime($asset['created_at']),
         ];
     }
 
     /**
-     * Prepare cloudinary resource size
+     * Get cloudinary asset as file size
      *
-     * @param  array  $resource
+     * @param  array  $asset
      * @return array
      */
-    protected function prepareSize(array $resource): array
+    protected function getFileSize(array $asset): array
     {
         return [
-            'size' => $resource['bytes'],
+            'size' => $asset['bytes'],
         ];
     }
 

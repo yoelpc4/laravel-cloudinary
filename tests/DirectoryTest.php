@@ -7,13 +7,11 @@ use Illuminate\Support\Str;
 
 class DirectoryTest extends TestCase
 {
-    /** @test */
     public function testItCanCreateDir()
     {
         $this->assertTrue(Storage::createDir('test/' . Str::random()));
     }
 
-    /** @test */
     public function testItCanDeleteDir()
     {
         $path = 'test/' . Str::random();
