@@ -30,6 +30,7 @@ jobs:
           coverage: pcov
       - name: Install dependencies
         run: |
+          composer validate
           composer self-update
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
           composer install --prefer-dist --no-interaction --no-suggest
