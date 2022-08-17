@@ -25,7 +25,7 @@ _Laravel Cloudinary filesystem driver._
 
 ## Install
 
-Require this package with composer via command:
+Requires this package with composer via command:
 
 ```shell
 composer require yoelpc4/laravel-cloudinary
@@ -37,7 +37,7 @@ Register your Cloudinary account details [here](https://cloudinary.com/console).
 Then add these lines to your .env.
 
 ```dotenv
-FILESYSTEM_DRIVER=cloudinary
+FILESYSTEM_DISK=cloudinary
 
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
@@ -78,8 +78,8 @@ Register cloudinary driver configuration in `config/filesystems.php` at disks se
 ],
 ```
 
-The secure option is applied when generating url from storage, when `secure = true` will used `https`
-otherwise `secure = false` will used `http` as protocol.
+The secure option is applied when generating url from storage, when `secure = true` will use `https`
+otherwise `secure = false` will use `http` as protocol.
 
 The resource_types option is applied when generating resource type & public id whenever we call storage method such as
 write, writeStream, url, has, etc. Registers the appropriate file extensions according to cloudinary resource type e.g:
