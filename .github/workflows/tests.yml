@@ -47,7 +47,7 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_SECURE: ${{ secrets.CLOUDINARY_SECURE }}
           FILESYSTEM_CLOUD: ${{ secrets.FILESYSTEM_CLOUD }}
-          FILESYSTEM_DRIVER: ${{ secrets.FILESYSTEM_DRIVER }}
+          FILESYSTEM_DISK: ${{ secrets.FILESYSTEM_DISK }}
       - name: Upload coverage
         uses: codecov/codecov-action@v2
         with:
