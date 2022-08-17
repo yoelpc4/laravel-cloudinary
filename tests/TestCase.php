@@ -30,7 +30,7 @@ abstract class TestCase extends OrchestraTestCase
             ]);
 
         $app['config']->set('filesystems', [
-            'default' => env('FILESYSTEM_DRIVER'),
+            'default' => env('FILESYSTEM_DISK'),
             'disks'   => [
                 'cloudinary' => [
                     'driver'         => 'cloudinary',
