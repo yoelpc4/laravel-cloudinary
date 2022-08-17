@@ -37,7 +37,7 @@ Register your Cloudinary account details [here](https://cloudinary.com/console).
 Then add these lines to your .env.
 
 ```dotenv
-FILESYSTEM_DRIVER=cloudinary
+FILESYSTEM_DISK=cloudinary
 
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
