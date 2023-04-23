@@ -18,6 +18,7 @@ _Laravel Cloudinary filesystem driver._
 
 | Laravel | Package |
 |---------|---------|
+| 10.x.x  | 4.x     |
 | 9.x.x   | 3.x     |
 | 8.x.x   | 2.x     |
 | 7.x.x   | 2.x     |
