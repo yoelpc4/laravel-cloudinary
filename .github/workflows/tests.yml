@@ -60,6 +60,8 @@ jobs:
           FILESYSTEM_DISK: ${{ secrets.FILESYSTEM_DISK }}
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v4.2.0
         with:
           fail_ci_if_error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
